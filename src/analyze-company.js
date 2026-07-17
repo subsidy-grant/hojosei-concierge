@@ -83,6 +83,21 @@ function isFetchableUrl(raw) {
   return true;
 }
 
+const HTML_ENTITY_MAP = { amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'", apos: "'", nbsp: " " };
+function decodeEntities(s) {
+  return s.replace(/&([a-zA-Z#0-9]+);/g, (m, name) => HTML_ENTITY_MAP[name] || " ");
+}
+function extractMetaContent(html, attrName, attrValue) {
+  const re1 = new RegExp(`<meta[^>]+${attrName}=["']${attrValue}["'][^>]*content=["']([^"']*)["']`, "i");
+  const re2 = new RegExp(`<meta[^>]+content=["']([^"']*)["'][^>]*${attrName}=["']${attrValue}["']`, "i");
+  const m = html.match(re1) || html.match(re2);
+  return m ? decodeEntities(m[1]).trim() : "";
+}
+function extractTitle(html) {
+  const m = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  return m ? decodeEntities(m[1]).replace(/\s+/g, " ").trim() : "";
+}
+
 async function fetchCompanyText(url) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
@@ -96,15 +111,32 @@ async function fetchCompanyText(url) {
     const contentType = res.headers.get("content-type") || "";
     if (!contentType.includes("text/html") && !contentType.includes("text/plain")) return null;
     const html = await res.text();
-    // scriptとstyleを除去し、タグをスペースに置換してテキスト化
-    const text = html
+
+    // <head>内のSEOメタ情報を先に抽出する。JS描画のSPA(React/Vue等)ではbody本文がほぼ空のことが多く、
+    // <title>やmeta descriptionが唯一のまとまった手がかりになるケースがあるため、タグ除去より先に拾っておく。
+    const title = extractTitle(html);
+    const metaDescription = extractMetaContent(html, "name", "description");
+    const ogDescription = extractMetaContent(html, "property", "og:description");
+    const metaKeywords = extractMetaContent(html, "name", "keywords");
+
+    // scriptとstyleを除去し、タグをスペースに置換して本文テキスト化
+    const bodyText = html
       .replace(/<script[\s\S]*?<\/script>/gi, " ")
       .replace(/<style[\s\S]*?<\/style>/gi, " ")
       .replace(/<[^>]+>/g, " ")
-      .replace(/&[a-zA-Z#0-9]+;/g, " ")
+      .replace(/&[a-zA-Z#0-9]+;/g, (m, ..._args) => decodeEntities(m))
       .replace(/\s+/g, " ")
       .trim();
-    return text.slice(0, 6000);
+
+    const parts = [];
+    if (title) parts.push(`ページタイトル: ${title}`);
+    if (metaDescription) parts.push(`meta description: ${metaDescription}`);
+    if (ogDescription && ogDescription !== metaDescription) parts.push(`OGP description: ${ogDescription}`);
+    if (metaKeywords) parts.push(`meta keywords: ${metaKeywords}`);
+    if (bodyText) parts.push(`本文抜粋: ${bodyText.slice(0, 5000)}`);
+
+    const combined = parts.join("\n");
+    return combined ? combined.slice(0, 6000) : null;
   } catch {
     return null;
   } finally {
@@ -158,6 +190,7 @@ export async function handleAnalyzeCompany(request, env) {
     body: JSON.stringify({
       model: "claude-sonnet-5",
       max_tokens: 8000,
+      temperature: 0,
       output_config: {
         effort: "medium",
         format: { type: "json_schema", schema: RESPONSE_SCHEMA },

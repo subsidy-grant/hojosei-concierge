@@ -364,6 +364,7 @@
 <section class="screen" id="screen-dashboard">
   <h2>締切ダッシュボード</h2>
   <p class="sub">保存した制度の締切と残り日数を一覧できます。制度カードの「☆ 保存」から追加できます。</p>
+  <div id="dashCompanyFilter"></div>
   <div id="dashConflicts"></div>
   <div id="dashList"></div>
   <h3>送信済みの相談（デモ）</h3>
@@ -666,56 +667,63 @@ function basicInfoForm(key) {
 var PROGRAM_REQUIRED_DOCS = {
   ai: [
     basicInfoForm("ai"),
-    { label: "GビズIDプライムのアカウント", kind: "external" },
-    { label: "履歴事項全部証明書（法人）／本人確認書類（個人）", kind: "external" },
-    { label: "直近の決算書（貸借対照表・損益計算書）", kind: "external" },
-    { label: "導入するITツールの見積・提案資料", kind: "external" },
-    { label: "労働者名簿（賃上げ要件を使う場合）", kind: "external" },
-    { label: "SECURITY ACTION宣言", kind: "external" },
+    { label: "GビズIDプライムのアカウント", kind: "external",
+      officialUrl: "https://gbiz-id.go.jp/top/", docNote: "様式ではなくアカウント登録です" },
+    { label: "履歴事項全部証明書（法人）／本人確認書類（個人）", kind: "external",
+      officialUrl: "https://www.moj.go.jp/MINJI/minji06_00023.html", docNote: "様式ではなく登記所で取得する証明書です" },
+    { label: "直近の決算書（貸借対照表・損益計算書）", kind: "external", freeForm: true, docNote: "自社の会計帳票（様式自由）" },
+    { label: "導入するITツールの見積・提案資料", kind: "external", freeForm: true, docNote: "ITベンダー発行（様式自由）" },
+    { label: "労働者名簿（賃上げ要件を使う場合）", kind: "external", freeForm: true, docNote: "労働基準法の記載事項を満たせば様式自由" },
+    { label: "SECURITY ACTION宣言", kind: "external",
+      officialUrl: "https://www.ipa.go.jp/security/security-action/", docNote: "様式ではなくIPAサイトでの宣言手続きです" },
     { label: "事業計画（ITツール導入計画）", kind: "businessPlan" }
   ],
   jizoku: [
     basicInfoForm("jizoku"),
     { label: "経営計画書・補助事業計画書", kind: "businessPlan", formNumber: "様式2・様式3",
       officialUrl: "https://www.chusho.meti.go.jp/koukai/hojyokin/kobo/2026/260527002.html" },
-    { label: "商工会議所・商工会の事業支援計画書（様式4）", kind: "external" },
-    { label: "直近の決算書または確定申告書", kind: "external" },
-    { label: "見積書（単価50万円以上の経費）", kind: "external" },
-    { label: "GビズIDプライムのアカウント（電子申請の場合）", kind: "external" },
+    { label: "商工会議所・商工会の事業支援計画書（様式4）", kind: "external",
+      officialUrl: "https://www.shokokai.or.jp/jizokuka_r1h/", docNote: "商工会議所・商工会の窓口で相談・入手する様式です" },
+    { label: "直近の決算書または確定申告書", kind: "external", freeForm: true, docNote: "自社の会計帳票／申告書（様式自由）" },
+    { label: "見積書（単価50万円以上の経費）", kind: "external", freeForm: true, docNote: "発注先ベンダー発行（様式自由）" },
+    { label: "GビズIDプライムのアカウント（電子申請の場合）", kind: "external",
+      officialUrl: "https://gbiz-id.go.jp/top/", docNote: "様式ではなくアカウント登録です" },
     { label: "賃金引上げ枠 表明書（記入シート）", kind: "form", formId: "jizoku_wage",
       formPurpose: "賃金引上げ枠を利用する場合の、事業場内最低賃金の引き上げ計画を整理する記入シート" }
   ],
   shoryokuka: [
     basicInfoForm("shoryokuka"),
-    { label: "GビズIDプライムのアカウント", kind: "external" },
+    { label: "GビズIDプライムのアカウント", kind: "external",
+      officialUrl: "https://gbiz-id.go.jp/top/", docNote: "様式ではなくアカウント登録です" },
     { label: "事業計画書（省力化の効果を示すもの）", kind: "businessPlan" },
-    { label: "直近の決算書", kind: "external" },
-    { label: "導入機器の見積書・カタログ", kind: "external" },
-    { label: "労働者名簿", kind: "external" },
+    { label: "直近の決算書", kind: "external", freeForm: true, docNote: "自社の会計帳票（様式自由）" },
+    { label: "導入機器の見積書・カタログ", kind: "external", freeForm: true, docNote: "メーカー・販売店発行（様式自由）" },
+    { label: "労働者名簿", kind: "external", freeForm: true, docNote: "労働基準法の記載事項を満たせば様式自由" },
     { label: "最低賃金引上げ特例 表明書（記入シート）", kind: "form", formId: "shoryokuka_wage",
       formPurpose: "補助率優遇の特例を利用する場合の、最低賃金引上げ計画を整理する記入シート" }
   ],
   monodukuri: [
     basicInfoForm("monodukuri"),
-    { label: "GビズIDプライムのアカウント", kind: "external" },
+    { label: "GビズIDプライムのアカウント", kind: "external",
+      officialUrl: "https://gbiz-id.go.jp/top/", docNote: "様式ではなくアカウント登録です" },
     { label: "事業計画書（革新性・市場性・実現可能性を示すもの）", kind: "businessPlan" },
-    { label: "直近2期分の決算書", kind: "external" },
+    { label: "直近2期分の決算書", kind: "external", freeForm: true, docNote: "自社の会計帳票（様式自由）" },
     { label: "賃金引上げ計画表明書（記入シート）", kind: "form", formId: "monodukuri_wage",
       formPurpose: "必須要件である給与支給総額の賃上げ計画（年平均成長率+3.5%以上等）を整理する記入シート" },
-    { label: "見積書（相見積が必要な場合あり）", kind: "external" },
-    { label: "従業員数を確認できる書類", kind: "external" }
+    { label: "見積書（相見積が必要な場合あり）", kind: "external", freeForm: true, docNote: "発注先ベンダー発行（様式自由）" },
+    { label: "従業員数を確認できる書類", kind: "external", freeForm: true, docNote: "社会保険関係書類等（様式自由）" }
   ],
   career: [
     basicInfoForm("career"),
     { label: "キャリアアップ計画書（事前提出必須・記入シート）", kind: "form", formId: "career_plan", formNumber: "様式第2号",
       formPurpose: "パート・有期雇用労働者の正社員化の取組内容・実施時期を整理する事前提出用の計画書記入シート",
       officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000118801_00016.html" },
-    { label: "就業規則または労働協約", kind: "external" },
-    { label: "転換前後の雇用契約書・賃金台帳", kind: "external" },
+    { label: "就業規則または労働協約", kind: "external", freeForm: true, docNote: "自社規程（様式自由）" },
+    { label: "転換前後の雇用契約書・賃金台帳", kind: "external", freeForm: true, docNote: "自社書式（様式自由）" },
     { label: "支給申請書（様式第3号・別添様式1-1/1-2）", kind: "external", formNumber: "様式第3号",
       officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000118801_00016.html" },
-    { label: "出勤簿・タイムカード", kind: "external" },
-    { label: "労働保険料の納付を証明する書類", kind: "external" }
+    { label: "出勤簿・タイムカード", kind: "external", freeForm: true, docNote: "自社書式（様式自由）" },
+    { label: "労働保険料の納付を証明する書類", kind: "external", freeForm: true, docNote: "領収書等（様式自由）" }
   ],
   trial: [
     basicInfoForm("trial"),
@@ -723,17 +731,19 @@ var PROGRAM_REQUIRED_DOCS = {
     { label: "試行雇用実施計画書（記入シート・共通様式第1号）", kind: "form", formId: "trial_plan", formNumber: "共通様式第1号",
       formPurpose: "試行雇用の対象者・実施期間・業務内容を整理する記入シート",
       officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/koyou/kyufukin/trial_koyou_dl.html" },
-    { label: "雇用契約書（無期雇用を前提とする内容）", kind: "external" },
-    { label: "出勤簿・賃金台帳", kind: "external" },
+    { label: "雇用契約書（無期雇用を前提とする内容）", kind: "external", freeForm: true, docNote: "自社書式（様式自由）" },
+    { label: "出勤簿・賃金台帳", kind: "external", freeForm: true, docNote: "自社書式（様式自由）" },
     { label: "結果報告書兼支給申請書（共通様式第2号）", kind: "external", formNumber: "共通様式第2号",
       officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/koyou/kyufukin/trial_koyou_dl.html" }
   ],
   tokutei: [
     basicInfoForm("tokutei"),
-    { label: "職業紹介状（ハローワーク等の紹介を証明する書類）", kind: "external" },
-    { label: "対象者の状況を確認できる書類（年齢・障害者手帳等）", kind: "external" },
-    { label: "雇用契約書", kind: "external" },
-    { label: "出勤簿・賃金台帳", kind: "external" },
+    { label: "職業紹介状（ハローワーク等の紹介を証明する書類）", kind: "external",
+      officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/koyou/kyufukin/tokutei_konnan.html",
+      docNote: "様式ではなくハローワーク等が発行する書類です" },
+    { label: "対象者の状況を確認できる書類（年齢・障害者手帳等）", kind: "external", docNote: "様式ではなく公的機関等が発行する証明書です" },
+    { label: "雇用契約書", kind: "external", freeForm: true, docNote: "自社書式（様式自由）" },
+    { label: "出勤簿・賃金台帳", kind: "external", freeForm: true, docNote: "自社書式（様式自由）" },
     { label: "支給申請書（様式第3号:第1期／様式第4号:第2期以降）", kind: "external", formNumber: "様式第3号・第4号",
       officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/koyou/kyufukin/tokutei_konnan.html" }
   ],
@@ -742,9 +752,10 @@ var PROGRAM_REQUIRED_DOCS = {
     { label: "育休復帰支援プラン（記入シート・様式第2号/第3号関連）", kind: "form", formId: "ryoritsu_plan", formNumber: "様式第2号・第3号",
       formPurpose: "対象労働者の育児休業取得・職場復帰を支援する具体的な取組内容を整理する記入シート",
       officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kodomo/shokuba_kosodate/ryouritsu01/index.html" },
-    { label: "育児休業取得を証明する書類（辞令等）", kind: "external" },
-    { label: "育休復帰後の雇用契約書・出勤簿", kind: "external" },
-    { label: "支給申請書", kind: "external" }
+    { label: "育児休業取得を証明する書類（辞令等）", kind: "external", freeForm: true, docNote: "自社発行（様式自由）" },
+    { label: "育休復帰後の雇用契約書・出勤簿", kind: "external", freeForm: true, docNote: "自社書式（様式自由）" },
+    { label: "支給申請書", kind: "external",
+      officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kodomo/shokuba_kosodate/ryouritsu01/index.html" }
   ],
   kaizen: [
     basicInfoForm("kaizen"),
@@ -753,10 +764,10 @@ var PROGRAM_REQUIRED_DOCS = {
     { label: "事業実施計画書・賃金引上げ計画書（記入シート・様式第1号別紙2）", kind: "form", formId: "kaizen_plan", formNumber: "様式第1号別紙2",
       formPurpose: "事業場内最低賃金の引き上げ計画（50円以上）を整理する記入シート",
       officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/roudoukijun/zigyonushi/shienjigyou/03.html" },
-    { label: "労働者名簿・賃金台帳", kind: "external" },
-    { label: "就業規則または労働条件通知書の写し", kind: "external" },
-    { label: "設備導入等に係る見積書", kind: "external" },
-    { label: "事業場内最低賃金を確認できる書類", kind: "external" }
+    { label: "労働者名簿・賃金台帳", kind: "external", freeForm: true, docNote: "自社書式（様式自由）" },
+    { label: "就業規則または労働条件通知書の写し", kind: "external", freeForm: true, docNote: "自社規程（様式自由）" },
+    { label: "設備導入等に係る見積書", kind: "external", freeForm: true, docNote: "発注先ベンダー発行（様式自由）" },
+    { label: "事業場内最低賃金を確認できる書類", kind: "external", freeForm: true, docNote: "賃金台帳等（様式自由）" }
   ],
   jinzai: [
     basicInfoForm("jinzai"),
@@ -765,60 +776,64 @@ var PROGRAM_REQUIRED_DOCS = {
       officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/38819_00010.html" },
     { label: "対象労働者一覧（第3-1号）・訓練カリキュラム（第15号/第16号）", kind: "external", formNumber: "第3-1号・第15号・第16号",
       officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/38819_00010.html" },
-    { label: "訓練日誌・出勤簿", kind: "external" },
-    { label: "訓練費用の領収書・支払証憑", kind: "external" },
-    { label: "賃金台帳", kind: "external" },
+    { label: "訓練日誌・出勤簿", kind: "external", freeForm: true, docNote: "自社書式（様式自由）" },
+    { label: "訓練費用の領収書・支払証憑", kind: "external", freeForm: true, docNote: "発行元書式（様式自由）" },
+    { label: "賃金台帳", kind: "external", freeForm: true, docNote: "自社書式（様式自由）" },
     { label: "支給申請書（第4-1号）・賃金助成等内訳（第5号）", kind: "external", formNumber: "第4-1号・第5号",
       officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/38819_00010.html" }
   ],
   shokei: [
     basicInfoForm("shokei"),
-    { label: "GビズIDプライムのアカウント", kind: "external" },
+    { label: "GビズIDプライムのアカウント", kind: "external",
+      officialUrl: "https://gbiz-id.go.jp/top/", docNote: "様式ではなくアカウント登録です" },
     { label: "事業承継計画書", kind: "businessPlan" },
-    { label: "直近の決算書（貸借対照表・損益計算書）", kind: "external" },
-    { label: "対象経費の見積書", kind: "external" },
+    { label: "直近の決算書（貸借対照表・損益計算書）", kind: "external", freeForm: true, docNote: "自社の会計帳票（様式自由）" },
+    { label: "対象経費の見積書", kind: "external", freeForm: true, docNote: "発注先ベンダー発行（様式自由）" },
     { label: "賃金引上げ計画表明書（記入シート・任意）", kind: "form", formId: "shokei_wage",
       formPurpose: "補助上限額を引き上げる場合の、事業場内最低賃金+50円以上の賃上げ計画を整理する記入シート" },
-    { label: "賃上げ特例を使う場合は賃金台帳", kind: "external" }
+    { label: "賃上げ特例を使う場合は賃金台帳", kind: "external", freeForm: true, docNote: "自社書式（様式自由）" }
   ],
   koreisha: [
     basicInfoForm("koreisha"),
     { label: "高年齢者雇用管理整備計画（記入シート）", kind: "form", formId: "koreisha_plan",
       formPurpose: "定年引上げ・定年廃止・継続雇用制度の見直し内容を整理する記入シート",
       officialUrl: "https://www.jeed.go.jp/elderly/subsidy/subsidy_keizoku_yousiki07.html" },
-    { label: "高年齢者雇用に関する規程・就業規則（定年引上げ・廃止等を反映したもの）", kind: "external" },
-    { label: "就業規則の変更届（労働基準監督署の受理印があるもの）", kind: "external" },
-    { label: "対象労働者の雇用契約書・賃金台帳", kind: "external" },
-    { label: "支給申請書", kind: "external" }
+    { label: "高年齢者雇用に関する規程・就業規則（定年引上げ・廃止等を反映したもの）", kind: "external", freeForm: true, docNote: "自社規程（様式自由）" },
+    { label: "就業規則の変更届（労働基準監督署の受理印があるもの）", kind: "external", docNote: "様式は所轄の労働基準監督署にご確認ください" },
+    { label: "対象労働者の雇用契約書・賃金台帳", kind: "external", freeForm: true, docNote: "自社書式（様式自由）" },
+    { label: "支給申請書", kind: "external",
+      officialUrl: "https://www.jeed.go.jp/elderly/subsidy/subsidy_keizoku_yousiki07.html" }
   ],
   telework: [
     basicInfoForm("telework"),
     { label: "テレワーク実施計画（記入シート）", kind: "form", formId: "telework_plan",
       formPurpose: "テレワークの対象者・実施方法・目標を整理する記入シート",
       officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000199292_00010.html" },
-    { label: "テレワーク実施に関する規程・就業規則", kind: "external" },
-    { label: "対象労働者のテレワーク実施記録", kind: "external" },
-    { label: "支給申請書", kind: "external" }
+    { label: "テレワーク実施に関する規程・就業規則", kind: "external", freeForm: true, docNote: "自社規程（様式自由）" },
+    { label: "対象労働者のテレワーク実施記録", kind: "external", freeForm: true, docNote: "自社書式（様式自由）" },
+    { label: "支給申請書", kind: "external",
+      officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000199292_00010.html" }
   ],
   hatarakikata: [
     basicInfoForm("hatarakikata"),
     { label: "働き方改革推進支援助成金交付申請書（記入シート・様式第1号）", kind: "form", formId: "hatarakikata_plan", formNumber: "様式第1号",
       formPurpose: "残業削減・年次有給休暇の取得促進に関する具体的な取組内容と成果目標を整理する記入シート",
       officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000120692.html" },
-    { label: "年次有給休暇管理簿", kind: "external" },
-    { label: "就業規則（変更届を含む）", kind: "external" },
-    { label: "実施した取組に係る発注書・領収書等の証憑", kind: "external" },
-    { label: "交付申請書・事業実施計画書", kind: "external" },
-    { label: "労働者名簿・賃金台帳", kind: "external" }
+    { label: "年次有給休暇管理簿", kind: "external", freeForm: true, docNote: "自社書式（様式自由）" },
+    { label: "就業規則（変更届を含む）", kind: "external", freeForm: true, docNote: "自社規程（様式自由）" },
+    { label: "実施した取組に係る発注書・領収書等の証憑", kind: "external", freeForm: true, docNote: "発行元書式（様式自由）" },
+    { label: "36協定届の写し（労基署提出済みのもの）", kind: "external", docNote: "様式は所轄の労働基準監督署にご確認ください" },
+    { label: "労働者名簿・賃金台帳", kind: "external", freeForm: true, docNote: "自社書式（様式自由）" }
   ],
   kaigo: [
     basicInfoForm("kaigo"),
     { label: "介護支援プラン（記入シート）", kind: "form", formId: "kaigo_plan",
       formPurpose: "対象労働者の介護休業取得・仕事と介護の両立を支援する具体的な取組内容を整理する記入シート",
       officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kodomo/shokuba_kosodate/ryouritsu01/index.html" },
-    { label: "介護休業の取得を証明する書類（辞令等）", kind: "external" },
-    { label: "介護休業復帰後の雇用契約書・出勤簿", kind: "external" },
-    { label: "支給申請書", kind: "external" }
+    { label: "介護休業の取得を証明する書類（辞令等）", kind: "external", freeForm: true, docNote: "自社発行（様式自由）" },
+    { label: "介護休業復帰後の雇用契約書・出勤簿", kind: "external", freeForm: true, docNote: "自社書式（様式自由）" },
+    { label: "支給申請書", kind: "external",
+      officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kodomo/shokuba_kosodate/ryouritsu01/index.html" }
   ]
 };
 function programHasBusinessPlan(key) {
@@ -874,10 +889,12 @@ function setProgressStep(progKey, track, stepCount) {
 function docsForTrack(progKey, track) {
   var docs = PROGRAM_REQUIRED_DOCS[progKey] || [];
   var paymentKeywords = ["支給申請", "実績報告", "確定"];
-  return docs.filter(function (d) {
+  var result = [];
+  docs.forEach(function (d, i) {
     var isPayment = paymentKeywords.some(function (k) { return d.label.indexOf(k) !== -1; });
-    return track === "payment" ? isPayment : !isPayment;
+    if (track === "payment" ? isPayment : !isPayment) result.push({ doc: d, index: i });
   });
+  return result;
 }
 function renderStepper(containerId, titleId, progKey, track) {
   var p = PROGRAMS[progKey];
@@ -902,8 +919,14 @@ function renderStepper(containerId, titleId, progKey, track) {
     if (tpl.steps[descIdx].label === "書類の準備") {
       var docList = docsForTrack(progKey, track);
       if (docList.length > 0) {
-        descText += "<ul style='margin:0.5rem 0 0;padding-left:1.2rem;'>" + docList.map(function (d) {
-          return "<li>" + (d.formNumber ? "<strong>[" + esc(d.formNumber) + "]</strong> " : "") + esc(d.label) + "</li>";
+        var checkedIdx = getChecklistState(progKey);
+        var doneCount = docList.filter(function (item) { return checkedIdx.indexOf(item.index) !== -1; }).length;
+        descText += "<div style='margin-top:0.4rem;font-weight:700;'>準備状況: " + doneCount + " / " + docList.length + "（チェックリストと連動）</div>";
+        descText += "<ul style='margin:0.3rem 0 0;padding-left:1.2rem;'>" + docList.map(function (item) {
+          var d = item.doc;
+          var isChecked = checkedIdx.indexOf(item.index) !== -1;
+          return "<li style='" + (isChecked ? "color:var(--ink-faint);text-decoration:line-through;" : "") + "'>"
+            + (isChecked ? "✓ " : "☐ ") + (d.formNumber ? "<strong>[" + esc(d.formNumber) + "]</strong> " : "") + esc(d.label) + "</li>";
         }).join("") + "</ul>";
       }
     }
@@ -993,7 +1016,7 @@ var INDUSTRY_OPTIONS = [
 var INTENT_OPTIONS = DIAGNOSIS_QUESTIONS.filter(function (q) { return q.key !== "smallBiz"; });
 
 /* ==================== 状態・ユーティリティ ==================== */
-var state = { programKey: null, matches: null, company: null };
+var state = { programKey: null, matches: null, company: null, dashboardCompanyKey: null };
 var LS = {
   saved: "concierge_savedPrograms",
   checklist: "concierge_checklist_",
@@ -1220,6 +1243,8 @@ function onChecklistToggle(progKey, idx, isChecked) {
   if (isChecked && pos === -1) stateArr.push(idx);
   if (!isChecked && pos !== -1) stateArr.splice(pos, 1);
   lsSet(LS.checklist + progKey, stateArr);
+  renderStepper("stepperApply", "stepperApplyTitle", progKey, "apply");
+  renderStepper("stepperPayment", "stepperPaymentTitle", progKey, "payment");
 }
 function renderChecklist(progKey) {
   var docs = PROGRAM_REQUIRED_DOCS[progKey] || [];
@@ -1231,7 +1256,11 @@ function renderChecklist(progKey) {
       + 'onchange="onChecklistToggle(\'' + progKey + "', " + i + ', this.checked)"><span>'
       + (d.formNumber ? '<strong>[' + esc(d.formNumber) + ']</strong> ' : "") + esc(d.label) + "</span></label>";
     if (d.officialUrl) {
-      html += '<a class="src-link" style="font-size:0.78rem;" href="' + esc(d.officialUrl) + '" target="_blank" rel="noopener noreferrer">公式様式を見る ↗</a>';
+      html += '<a class="src-link" style="font-size:0.78rem;" href="' + esc(d.officialUrl) + '" target="_blank" rel="noopener noreferrer">' + (d.docNote ? esc(d.docNote) : "公式様式を見る") + ' ↗</a>';
+    } else if (d.freeForm) {
+      html += '<span style="font-size:0.78rem;color:var(--ink-faint);">' + (d.docNote ? esc(d.docNote) : "様式自由") + "</span>";
+    } else if (d.docNote) {
+      html += '<span style="font-size:0.78rem;color:var(--ink-faint);">' + esc(d.docNote) + "</span>";
     }
     if (d.kind === "businessPlan") {
       html += '<button type="button" class="ghost small-btn" onclick="openDraftScreen(' + i + ')">AIで下書きを作成</button>';
@@ -1506,13 +1535,30 @@ function renderJgrants() {
 }
 
 /* ==================== お気に入り・ダッシュボード ==================== */
-function getFavorites() { return lsGet(LS.saved, []); }
+function getFavoritesStore() {
+  var all = lsGet(LS.saved, {});
+  if (Array.isArray(all)) { var migrated = { "__general__": all }; lsSet(LS.saved, migrated); return migrated; }
+  return all;
+}
+function getFavorites() {
+  var all = getFavoritesStore();
+  return all[currentCompanyKey()] || [];
+}
+function favoritesForDashboard() {
+  var all = getFavoritesStore();
+  if (state.dashboardCompanyKey) return all[state.dashboardCompanyKey] || [];
+  var set = {};
+  Object.keys(all).forEach(function (k) { (all[k] || []).forEach(function (pk) { set[pk] = true; }); });
+  return Object.keys(set);
+}
 function toggleFavorite(key) {
-  var favs = getFavorites();
-  var pos = favs.indexOf(key);
-  if (pos === -1) favs.push(key); else favs.splice(pos, 1);
-  lsSet(LS.saved, favs);
-  var saved = favs.indexOf(key) !== -1;
+  var all = getFavoritesStore();
+  var ck = currentCompanyKey();
+  if (!all[ck]) all[ck] = [];
+  var pos = all[ck].indexOf(key);
+  if (pos === -1) all[ck].push(key); else all[ck].splice(pos, 1);
+  lsSet(LS.saved, all);
+  var saved = all[ck].indexOf(key) !== -1;
   var btn1 = document.getElementById("fav-" + key);
   if (btn1) btn1.textContent = saved ? "★ 保存済み" : "☆ 保存";
   var btn2 = document.getElementById("fav-detail-" + key);
@@ -1524,7 +1570,14 @@ function daysUntil(iso) {
   return Math.round((d - today) / 86400000);
 }
 function renderDashboard() {
-  var favs = getFavorites();
+  var filterEl = document.getElementById("dashCompanyFilter");
+  if (state.dashboardCompanyKey) {
+    filterEl.innerHTML = '<div class="notice">表示中の会社: <strong>' + esc(state.dashboardCompanyKey) + "</strong>　"
+      + '<button type="button" class="ghost small-btn" onclick="state.dashboardCompanyKey=null;renderDashboard();">すべての会社を表示</button></div>';
+  } else {
+    filterEl.innerHTML = "";
+  }
+  var favs = favoritesForDashboard();
   var conflicts = checkConflicts(favs);
   var dc = document.getElementById("dashConflicts");
   if (conflicts.length > 0) {
@@ -1568,6 +1621,11 @@ function renderDashboard() {
     || '<div class="card">保存された制度はまだありません。「制度をさがす」から候補を保存してください。</div>';
 
   var requests = lsGet(LS.requests, []);
+  if (state.dashboardCompanyKey) {
+    requests = requests.filter(function (r) {
+      return r.company && (r.company === state.dashboardCompanyKey || r.company.indexOf(state.dashboardCompanyKey) !== -1 || state.dashboardCompanyKey.indexOf(r.company) !== -1);
+    });
+  }
   var rhtml = "";
   if (requests.length > 0) {
     rhtml = '<div class="card table-scroll"><table class="plain"><thead><tr><th>日付</th><th>相談先</th><th>制度</th><th>状態</th></tr></thead><tbody>';
@@ -1595,7 +1653,9 @@ function renderHistory() {
   historyKeysCache.forEach(function (companyKey, ki) {
     var entries = hist[companyKey] || [];
     html += '<details class="prog-card"' + (ki === 0 ? " open" : "") + '><summary><span class="chevron">▶</span>'
-      + esc(companyKey) + "（" + entries.length + "件）</summary><div class=\"prog-body\">";
+      + esc(companyKey) + "（" + entries.length + "件）"
+      + '<button type="button" class="ghost small-btn" style="margin-left:0.6rem;" onclick="event.preventDefault();openDashboardForCompany(' + ki + ')">この会社のダッシュボードを見る</button>'
+      + "</summary><div class=\"prog-body\">";
     entries.forEach(function (e, idx) {
       var pname = PROGRAMS[e.programKey] ? PROGRAMS[e.programKey].name : e.programKey;
       html += '<div class="card" style="margin:0.6rem 0;">'
@@ -1609,6 +1669,12 @@ function renderHistory() {
     html += "</div></details>";
   });
   document.getElementById("historyList").innerHTML = html;
+}
+function openDashboardForCompany(ki) {
+  var companyKey = historyKeysCache[ki];
+  if (!companyKey) return;
+  state.dashboardCompanyKey = companyKey;
+  showScreen("screen-dashboard");
 }
 function copyHistoryEntry(ki, idx) {
   var hist = lsGet(LS.history, {});
