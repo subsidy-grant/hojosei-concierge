@@ -125,6 +125,13 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .diag-tags { display: flex; flex-wrap: wrap; gap: 0.3rem 0.8rem; }
   .diag-tags label { font-size: 0.88rem; cursor: pointer; display: flex; gap: 0.4rem; align-items: baseline; }
+  .pill-select { display: flex; gap: 0.55rem; overflow-x: auto; padding: 0.3rem 0.15rem 0.7rem; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+  .pill-select label { position: relative; flex: 0 0 auto; scroll-snap-align: start; padding: 0.5rem 1.1rem;
+    font-size: 0.85rem; border: 1px solid var(--line); border-radius: 999px; background: var(--paper-raised);
+    cursor: pointer; white-space: nowrap; user-select: none; }
+  .pill-select label input { position: absolute; opacity: 0; pointer-events: none; }
+  .pill-select label:has(input:checked) { background: var(--accent-wash); border-color: var(--accent); color: var(--ink); font-weight: 700; }
+  .pill-select-hint { font-size: 0.78rem; color: var(--ink-faint); margin: -0.3rem 0 0.3rem; }
   footer.site { margin-top: 3rem; padding-top: 1.2rem; border-top: 1px solid var(--line);
     font-size: 0.78rem; color: var(--ink-faint); }
 </style>
@@ -149,11 +156,19 @@
   <div class="card">
     <label class="field" for="companyUrl">会社ホームページのURL</label>
     <input type="url" id="companyUrl" placeholder="https://www.example.co.jp" inputmode="url">
-    <label class="field" for="companyDesc">事業内容・いま考えている取り組み（任意）</label>
-    <textarea id="companyDesc" placeholder="例：従業員8名の美容室。パートスタッフの正社員化と、予約管理システムの導入を検討している。"></textarea>
-    <button class="primary" id="analyzeBtn" onclick="analyzeCompany()">AIで活用できる制度をさがす</button>
+
+    <label class="field" for="corporateNumber">法人番号（任意・13桁）</label>
+    <div style="display:flex;gap:0.5rem;">
+      <input type="text" id="corporateNumber" placeholder="1234567890123" inputmode="numeric" maxlength="13" style="flex:1;">
+      <button type="button" class="secondary" style="margin:0;white-space:nowrap;" onclick="lookupCorporate()">会社情報を補完</button>
+    </div>
+    <div id="corporateLookupStatus" style="font-size:0.82rem;color:var(--ink-soft);margin-top:0.3rem;"></div>
+    <div id="corporateLookupResult"></div>
+
+    <button class="primary" id="analyzeBtn" onclick="analyzeCompany()" style="margin-top:1rem;">AIで活用できる制度をさがす</button>
     <div id="analyzeStatus" style="font-size:0.85rem;color:var(--ink-soft);"></div>
   </div>
+  <div class="notice">法人番号を入力すると、gBizINFO（経済産業省）で公開されている資本金・従業員数などの公的データを取得し、AIの解析結果の精度を高めます。国税庁の法人番号サイトとは異なり、gBizINFOは業種・従業員数・資本金も提供しています。</div>
   <div class="notice">AIによる解析結果は<strong>推定</strong>です。実際の対象可否は必ず各制度の公式情報（公募要領・支給要領）でご確認ください。</div>
   <h3>AIを使わずに簡易診断でさがす</h3>
   <div class="card">
@@ -207,8 +222,14 @@
   <p class="sub" id="draftProgName"></p>
   <div class="notice legal" id="draftLegalNotice"></div>
   <div class="card">
-    <label class="field" for="draftInput">事業の内容・この制度でやりたいこと</label>
-    <textarea id="draftInput" placeholder="例：地域密着の美容室。客単価向上のためヘッドスパ機器を導入し、あわせてパート2名を正社員化したい。"></textarea>
+    <label class="field">事業内容（業種を選択）</label>
+    <p class="pill-select-hint">← スライドして選択してください →</p>
+    <div class="pill-select" id="draftIndustrySelect"></div>
+    <label class="field">この制度でやりたいこと（複数選択可）</label>
+    <p class="pill-select-hint">← スライドして選択してください →</p>
+    <div class="pill-select" id="draftIntentSelect"></div>
+    <label class="field" for="draftExtra">補足（任意）</label>
+    <textarea id="draftExtra" placeholder="例：客単価向上のため接客研修も強化したい。具体的な数値目標があれば記入してください。" style="min-height:70px;"></textarea>
     <button class="primary" id="draftBtn" onclick="generateDraft()">下書きを生成する</button>
     <div id="draftStatus" style="font-size:0.85rem;color:var(--ink-soft);"></div>
   </div>
@@ -481,6 +502,86 @@ var PROGRAMS = {
     link: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/koyou/kyufukin/d01-1.html",
     linkLabel: "厚生労働省 公式ページを見る",
     matchesWhen: ["training"]
+  },
+  shokei: {
+    name: "事業承継・M&A補助金＜事業承継促進枠＞（第15次公募）",
+    type: "hojokin", licenseType: "gyosei",
+    scale: "中小企業者・小規模事業者（5年以内に親族内承継または従業員承継を予定している者）",
+    expense: "設備費、産業財産権等関連経費、謝金、旅費、外注費、委託費など",
+    rate: "1/2以内（小規模事業者は2/3以内）",
+    cap: "800万円（事業場内最低賃金+50円以上の賃上げ達成で1,000万円に増額）",
+    wage: "必須ではない（達成で補助上限額が増額。未達成の場合は上限額を減額）",
+    schedule: "第15次公募：2026年6月19日〜7月24日申請受付（予定）",
+    deadline: "2026-07-24", deadlineNote: "第15次締切 17:00（予定）。次回公募は要確認",
+    continuity: "中小企業生産性革命推進事業の一環として複数回にわたり継続公募中",
+    note: "事業承継促進枠のほか、専門家活用枠・廃業/再チャレンジ枠・PMI推進枠がある。申請はJグランツのみ。",
+    link: "https://www.chusho.meti.go.jp/koukai/hojyokin/kobo/2026/260522001.html",
+    linkLabel: "第15次公募要領を見る",
+    matchesWhen: ["succession"]
+  },
+  koreisha: {
+    name: "65歳超雇用推進助成金（65歳超継続雇用促進コース）",
+    type: "joseikin", licenseType: "sharoushi",
+    scale: "雇用保険適用事業所の事業主（全業種・企業規模を問わず対象）",
+    expense: "65歳以上への定年引上げ、定年の廃止、希望者全員を対象とする66歳以上への継続雇用制度の導入等",
+    rate: "定額支給（実施した措置の内容・対象者数により変動）",
+    cap: "15万円〜240万円（2026年4月改正後の金額。定年廃止等で高額になりやすい）",
+    wage: "不要",
+    schedule: "通年受付（制度実施日の翌月起算4か月以内の各月1日〜15日に申請）",
+    deadline: null, deadlineNote: "通年随時受付（制度実施後の申請期限に注意）",
+    continuity: "高年齢者雇用安定法に基づく施策として継続実施。2026年4月に支給要領改正",
+    note: "独立行政法人 高齢・障害・求職者雇用支援機構(JEED)が窓口。就業規則の改定等、制度導入の実態が前提。",
+    link: "https://www.mhlw.go.jp/stf/newpage_52738.html",
+    linkLabel: "厚生労働省 公式ページを見る",
+    matchesWhen: ["seniorRetireAge"]
+  },
+  telework: {
+    name: "人材確保等支援助成金（テレワークコース）",
+    type: "joseikin", licenseType: "sharoushi",
+    scale: "テレワーク制度を新たに導入・実施する（または実施を拡大する）中小企業事業主",
+    expense: "就業規則等の改定、外部専門家によるコンサルティング、労務管理担当者・労働者への研修等",
+    rate: "定額支給",
+    cap: "制度導入助成20万円＋目標達成助成10万円（賃金5%以上増加の要件を満たす場合15万円）",
+    wage: "目標達成助成の増額要件として賃金5%以上増加あり（必須ではない）",
+    schedule: "通年受付",
+    deadline: null, deadlineNote: "通年随時受付",
+    continuity: "継続実施中。2026年4月に支給要領改正（実施拡大事業主も対象化）",
+    note: "評価期間内にテレワーク実施日数等の目標達成が必要。",
+    link: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/telework_zyosei_R3.html",
+    linkLabel: "厚生労働省 公式ページを見る",
+    matchesWhen: ["telework"]
+  },
+  hatarakikata: {
+    name: "働き方改革推進支援助成金（労働時間短縮・年休促進支援コース）",
+    type: "joseikin", licenseType: "sharoushi",
+    scale: "労災保険適用の中小企業事業主（卸売業:資本金1億円以下/労働者100人以下、小売業:5,000万円以下/50人以下、サービス業:5,000万円以下/100人以下、医療福祉:300人以下、その他:3億円以下/300人以下）。年休管理簿の作成・就業規則の整備が前提",
+    expense: "研修、コンサルティング、就業規則整備、労務管理用ソフトウェア・機器導入、設備導入等（9区分）",
+    rate: "対象経費合計×3/4（条件により4/5）",
+    cap: "成果目標ごとの助成上限額＋加算額の合計（目標内容により変動、150万円程度まで）",
+    wage: "必須ではない（時間外労働の上限設定等、成果目標の達成が必要）",
+    schedule: "令和8年度：交付申請期限 2026年11月30日17:00",
+    deadline: "2026-11-30", deadlineNote: "令和8年度 交付申請期限 17:00",
+    continuity: "毎年度実施",
+    note: "年次有給休暇管理簿の作成・就業規則の整備と届出が交付申請の前提要件。",
+    link: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000120692.html",
+    linkLabel: "厚生労働省 公式ページを見る",
+    matchesWhen: ["workingHours"]
+  },
+  kaigo: {
+    name: "両立支援等助成金（介護離職防止支援コース）",
+    type: "joseikin", licenseType: "sharoushi",
+    scale: "中小企業事業主のみが対象",
+    expense: "「介護支援プラン」を作成し、介護休業の取得・復帰支援、仕事と介護の両立に資する制度の導入・利用、業務代替体制の整備等を行う取り組み",
+    rate: "定額支給",
+    cap: "介護休業（取得時30万円＋復帰時30万円）／介護両立支援制度30万円／業務代替支援加算（新規雇用20万円等）／介護休暇制度有給化支援30万円〜50万円（2026年度新設）等、区分により変動",
+    wage: "不要",
+    schedule: "通年受付（介護休業終了日の翌日から3か月経過後2か月以内など、取組ごとに申請期限あり）",
+    deadline: null, deadlineNote: "通年随時受付（取組ごとに申請期限あり）",
+    continuity: "恒久的制度として実施中。2026年度に介護休暇制度有給化支援を新設",
+    note: "介護支援プランの事前作成・実施が必須。",
+    link: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kodomo/shokuba_kosodate/ryouritsu01/index.html",
+    linkLabel: "厚生労働省 公式ページを見る",
+    matchesWhen: ["careLeave"]
   }
 };
 
@@ -495,11 +596,16 @@ var PROGRAM_REQUIRED_DOCS = {
   tokutei: ["職業紹介状（ハローワーク等の紹介を証明する書類）", "対象者の状況を確認できる書類（年齢・障害者手帳等）", "雇用契約書", "出勤簿・賃金台帳", "支給申請書"],
   ryoritsu: ["育休復帰支援プラン", "育児休業取得を証明する書類（辞令等）", "育休復帰後の雇用契約書・出勤簿", "支給申請書"],
   kaizen: ["交付申請書", "賃金引上げ計画書", "労働者名簿・賃金台帳", "就業規則または労働条件通知書の写し", "設備導入等に係る見積書", "事業場内最低賃金を確認できる書類"],
-  jinzai: ["事業内職業能力開発計画・年間職業能力開発計画届（事前提出必須）", "訓練カリキュラム・訓練実施計画届", "訓練日誌・出勤簿", "訓練費用の領収書・支払証憑", "賃金台帳", "支給申請書"]
+  jinzai: ["事業内職業能力開発計画・年間職業能力開発計画届（事前提出必須）", "訓練カリキュラム・訓練実施計画届", "訓練日誌・出勤簿", "訓練費用の領収書・支払証憑", "賃金台帳", "支給申請書"],
+  shokei: ["GビズIDプライムのアカウント", "事業承継計画・引継ぎの実施を示す書類", "直近の決算書（貸借対照表・損益計算書）", "対象経費の見積書", "賃上げ特例を使う場合は賃金台帳"],
+  koreisha: ["高年齢者雇用に関する規程・就業規則（定年引上げ・廃止等を反映したもの）", "就業規則の変更届（労働基準監督署の受理印があるもの）", "対象労働者の雇用契約書・賃金台帳", "支給申請書"],
+  telework: ["テレワーク実施に関する規程・就業規則", "テレワーク実施計画", "対象労働者のテレワーク実施記録", "支給申請書"],
+  hatarakikata: ["年次有給休暇管理簿", "就業規則（変更届を含む）", "実施した取組に係る発注書・領収書等の証憑", "交付申請書・事業実施計画書", "労働者名簿・賃金台帳"],
+  kaigo: ["介護支援プラン", "介護休業の取得を証明する書類（辞令等）", "介護休業復帰後の雇用契約書・出勤簿", "支給申請書"]
 };
 
 /* ==================== 併給可否ルール（ルールベース） ==================== */
-var HOJOKIN_KEYS = ["ai", "jizoku", "shoryokuka", "monodukuri"];
+var HOJOKIN_KEYS = ["ai", "jizoku", "shoryokuka", "monodukuri", "shokei"];
 var CONFLICT_RULES = [
   { pair: ["trial", "tokutei"], reason: "同一の雇い入れについては、特定求職者雇用開発助成金の初回支給分とトライアル雇用助成金のどちらか一方を選択する扱いとされています（併給調整あり・最新の公式パンフレットで要確認）。" }
 ];
@@ -532,11 +638,11 @@ function checkConflicts(keys) {
 var LICENSE_LABEL = { gyosei: "行政書士", sharoushi: "社会保険労務士", bengoshi: "弁護士" };
 var EXPERTS = [
   { id: "g1", name: "あおば行政書士事務所（架空）", license: "gyosei", specialties: ["jizoku", "ai", "shoryokuka"], area: "東京都", bio: "小規模事業者の販路開拓・IT導入の申請支援を中心に対応。" },
-  { id: "g2", name: "みなと総合行政書士法人（架空）", license: "gyosei", specialties: ["monodukuri", "shoryokuka"], area: "大阪府", bio: "製造業の大型設備投資・新事業進出の事業計画づくりが得意分野。" },
+  { id: "g2", name: "みなと総合行政書士法人（架空）", license: "gyosei", specialties: ["monodukuri", "shoryokuka", "shokei"], area: "大阪府", bio: "製造業の大型設備投資・新事業進出・事業承継の計画づくりが得意分野。" },
   { id: "g3", name: "ひかり行政書士事務所（架空）", license: "gyosei", specialties: ["jizoku", "ai"], area: "福岡県", bio: "個人事業主・創業まもない事業者の初めての補助金申請を伴走支援。" },
-  { id: "s1", name: "さくら社会保険労務士事務所（架空）", license: "sharoushi", specialties: ["career", "trial", "tokutei"], area: "東京都", bio: "非正規スタッフの正社員化・採用系助成金の申請実務に多数対応。" },
-  { id: "s2", name: "かえで社労士法人（架空）", license: "sharoushi", specialties: ["ryoritsu", "career", "jinzai"], area: "愛知県", bio: "育休・両立支援と人材育成の制度設計から申請までワンストップ対応。" },
-  { id: "s3", name: "つばき社会保険労務士事務所（架空）", license: "sharoushi", specialties: ["kaizen", "career"], area: "北海道", bio: "最低賃金引き上げに伴う業務改善助成金の活用支援が中心。" },
+  { id: "s1", name: "さくら社会保険労務士事務所（架空）", license: "sharoushi", specialties: ["career", "trial", "tokutei", "koreisha"], area: "東京都", bio: "非正規スタッフの正社員化・採用系助成金・高齢者雇用の申請実務に多数対応。" },
+  { id: "s2", name: "かえで社労士法人（架空）", license: "sharoushi", specialties: ["ryoritsu", "career", "jinzai", "kaigo", "telework"], area: "愛知県", bio: "育休・介護の両立支援と人材育成・テレワーク導入の制度設計から申請までワンストップ対応。" },
+  { id: "s3", name: "つばき社会保険労務士事務所（架空）", license: "sharoushi", specialties: ["kaizen", "career", "hatarakikata"], area: "北海道", bio: "最低賃金引き上げ・労働時間短縮に伴う助成金の活用支援が中心。" },
   { id: "b1", name: "デモ総合法律事務所（架空）", license: "bengoshi", specialties: [], area: "東京都", bio: "申請に関わる契約関係・法的リスクの相談に対応（書類作成は提携士業と連携）。" }
 ];
 
@@ -553,8 +659,20 @@ var DIAGNOSIS_QUESTIONS = [
   { key: "trialHire", label: "ハローワーク等の紹介で求職者を試行的に雇用したい" },
   { key: "newHireDifficult", label: "就職が難しい方（高齢者・障害者・ひとり親等）を雇用する予定がある" },
   { key: "workLifeBalance", label: "育児休業の取得・職場復帰を計画的に支援したい" },
+  { key: "succession", label: "事業承継（親族内・従業員承継）を予定している" },
+  { key: "seniorRetireAge", label: "定年引き上げ・廃止や高齢者の継続雇用を進めたい" },
+  { key: "telework", label: "テレワークを新たに導入・拡大したい" },
+  { key: "workingHours", label: "残業削減・有給休暇の取得促進に取り組みたい" },
+  { key: "careLeave", label: "介護休業の取得・仕事と介護の両立を支援したい" },
   { key: "smallBiz", label: "従業員20人以下の小規模な事業者である" }
 ];
+
+/* ==================== AI下書き画面: 業種・やりたいことのスライド選択肢 ==================== */
+var INDUSTRY_OPTIONS = [
+  "美容・理容業", "飲食業", "小売業", "卸売業", "製造業", "建設業", "運輸業",
+  "宿泊業", "医療・福祉", "教育・学習支援業", "情報通信業（IT）", "不動産業", "その他サービス業", "その他"
+];
+var INTENT_OPTIONS = DIAGNOSIS_QUESTIONS.filter(function (q) { return q.key !== "smallBiz"; });
 
 /* ==================== 状態・ユーティリティ ==================== */
 var state = { programKey: null, matches: null, company: null };
@@ -599,19 +717,53 @@ function showScreen(id) {
   window.scrollTo({ top: 0 });
 }
 
+/* ==================== 法人番号による属性補完(gBizINFO) ==================== */
+function lookupCorporate() {
+  var num = document.getElementById("corporateNumber").value.trim();
+  var status = document.getElementById("corporateLookupStatus");
+  var resultEl = document.getElementById("corporateLookupResult");
+  resultEl.innerHTML = "";
+  if (!/^\d{13}$/.test(num)) { status.textContent = "法人番号は数字13桁で入力してください。"; return; }
+  status.innerHTML = '<span class="spinner"></span> 会社情報を取得しています…';
+  fetch("/api/lookup-corporate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ corporateNumber: num })
+  }).then(function (res) { return res.json(); }).then(function (data) {
+    if (!data.available) {
+      status.textContent = data.message || "現在この機能は利用できません。";
+      return;
+    }
+    if (!data.found) {
+      status.textContent = data.message || "該当する法人情報が見つかりませんでした。";
+      return;
+    }
+    state.registryProfile = data.profile;
+    status.textContent = "";
+    var p = data.profile;
+    resultEl.innerHTML = '<div class="card" style="font-size:0.85rem;padding:0.7rem 0.9rem;">'
+      + '<strong>取得した法人情報（gBizINFO）</strong><br>'
+      + (p.name ? "法人名: " + esc(p.name) + "<br>" : "")
+      + (p.capitalStock != null ? "資本金: " + Number(p.capitalStock).toLocaleString() + "円　" : "")
+      + (p.employeeNumber != null ? "従業員数: " + Number(p.employeeNumber).toLocaleString() + "人" : "")
+      + "</div>";
+  }).catch(function () {
+    status.textContent = "取得に失敗しました。時間をおいて再度お試しください。";
+  });
+}
+
 /* ==================== 1→2: 会社解析・制度リストアップ ==================== */
 function analyzeCompany() {
   var url = document.getElementById("companyUrl").value.trim();
-  var desc = document.getElementById("companyDesc").value.trim();
   var status = document.getElementById("analyzeStatus");
-  if (!url && !desc) { status.textContent = "URLか事業内容のどちらかを入力してください。"; return; }
+  if (!url) { status.textContent = "会社ホームページのURLを入力してください。"; return; }
   var btn = document.getElementById("analyzeBtn");
   btn.disabled = true;
   status.innerHTML = '<span class="spinner"></span> AIが事業内容を読み取っています（10〜30秒ほどかかります）…';
   fetch("/api/analyze-company", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url: url, description: desc })
+    body: JSON.stringify({ url: url, registryProfile: state.registryProfile || null })
   }).then(function (res) {
     if (!res.ok) return res.json().then(function (e) { throw new Error(e.error || ("HTTP " + res.status)); });
     return res.json();
@@ -741,17 +893,41 @@ function renderChecklist(progKey) {
 }
 
 /* ==================== 5: AI下書き ==================== */
+function renderDraftSelectors() {
+  var industryHtml = "";
+  var guessedIndustry = state.company && state.company.industry ? state.company.industry : "";
+  for (var i = 0; i < INDUSTRY_OPTIONS.length; i++) {
+    var ind = INDUSTRY_OPTIONS[i];
+    var auto = guessedIndustry && guessedIndustry.indexOf(ind.replace(/（.*）/, "")) !== -1;
+    industryHtml += '<label><input type="radio" name="draftIndustry" value="' + esc(ind) + '"' + (auto ? " checked" : "") + '><span>' + esc(ind) + "</span></label>";
+  }
+  document.getElementById("draftIndustrySelect").innerHTML = industryHtml;
+
+  var intentHtml = "";
+  for (var j = 0; j < INTENT_OPTIONS.length; j++) {
+    var q = INTENT_OPTIONS[j];
+    intentHtml += '<label><input type="checkbox" name="draftIntent" value="' + esc(q.label) + '"><span>' + esc(q.label) + "</span></label>";
+  }
+  document.getElementById("draftIntentSelect").innerHTML = intentHtml;
+}
 function openDraftScreen() {
   var p = PROGRAMS[state.programKey];
   document.getElementById("draftProgName").textContent = "対象制度: " + p.name;
   document.getElementById("draftLegalNotice").innerHTML = DISCLAIMERS.selfDraft;
   document.getElementById("draftResultWrap").style.display = "none";
+  renderDraftSelectors();
   showScreen("screen-draft");
 }
 function generateDraft() {
-  var input = document.getElementById("draftInput").value.trim();
   var status = document.getElementById("draftStatus");
-  if (!input) { status.textContent = "事業の内容を入力してください。"; return; }
+  var industryEl = document.querySelector('input[name="draftIndustry"]:checked');
+  var intentEls = document.querySelectorAll('input[name="draftIntent"]:checked');
+  if (!industryEl) { status.textContent = "業種を選択してください。"; return; }
+  if (intentEls.length === 0) { status.textContent = "この制度でやりたいことを1つ以上選択してください。"; return; }
+  var intents = [];
+  for (var i = 0; i < intentEls.length; i++) intents.push(intentEls[i].value);
+  var extra = document.getElementById("draftExtra").value.trim();
+  var input = "業種: " + industryEl.value + "\nこの制度で取り組みたいこと: " + intents.join("、") + (extra ? "\n補足: " + extra : "");
   var btn = document.getElementById("draftBtn");
   btn.disabled = true;
   status.innerHTML = '<span class="spinner"></span> 下書きを生成しています（30秒〜1分ほどかかります）…';

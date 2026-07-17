@@ -15,6 +15,11 @@ const PROGRAM_INFO = {
   ryoritsu: { name: "両立支援等助成金(育児休業等支援コース)", type: "joseikin", docLabel: "育休復帰支援プランの検討メモ(たたき台)" },
   kaizen: { name: "業務改善助成金", type: "joseikin", docLabel: "賃金引上げ・設備投資計画の検討メモ(たたき台)" },
   jinzai: { name: "人材開発支援助成金(人材育成支援コース)", type: "joseikin", docLabel: "訓練計画の検討メモ(たたき台)" },
+  shokei: { name: "事業承継・M&A補助金(事業承継促進枠)", type: "hojokin", docLabel: "事業計画(事業承継計画)のたたき台" },
+  koreisha: { name: "65歳超雇用推進助成金(65歳超継続雇用促進コース)", type: "joseikin", docLabel: "高年齢者雇用に関する取組概要メモ(たたき台)" },
+  telework: { name: "人材確保等支援助成金(テレワークコース)", type: "joseikin", docLabel: "テレワーク実施計画の検討メモ(たたき台)" },
+  hatarakikata: { name: "働き方改革推進支援助成金(労働時間短縮・年休促進支援コース)", type: "joseikin", docLabel: "労働時間短縮の取組概要メモ(たたき台)" },
+  kaigo: { name: "両立支援等助成金(介護離職防止支援コース)", type: "joseikin", docLabel: "介護支援プランの検討メモ(たたき台)" },
 };
 
 function jsonResponse(body, status = 200) {
