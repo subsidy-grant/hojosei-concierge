@@ -258,6 +258,5 @@ export async function handleAnalyzeCompany(request, env) {
     company: parsed.company,
     matches,
     disclaimer: "この結果はAIによる推定であり、対象可否を保証するものではありません。必ず各制度の公募要領・支給要領をご確認ください。",
-    debugUsage: result.usage,
   });
 }
