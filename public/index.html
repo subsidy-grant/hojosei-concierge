@@ -1324,6 +1324,26 @@ function renderDialMulti(containerId) {
   }
 }
 
+/* ==================== ストリーミング応答を逐次textareaへ流し込む共通処理 ==================== */
+function consumeTextStream(res, textareaEl, wrapEl, onDone) {
+  wrapEl.style.display = "block";
+  textareaEl.value = "";
+  var reader = res.body.getReader();
+  var decoder = new TextDecoder();
+  function pump() {
+    return reader.read().then(function (result) {
+      if (result.done) {
+        if (onDone) onDone(textareaEl.value);
+        return;
+      }
+      textareaEl.value += decoder.decode(result.value, { stream: true });
+      textareaEl.scrollTop = textareaEl.scrollHeight;
+      return pump();
+    });
+  }
+  return pump();
+}
+
 /* ==================== 5: AI下書き（事業計画書が必要な制度のみ） ==================== */
 var draftSelectedIndustry = null;
 function renderDraftSelectors() {
@@ -1366,20 +1386,18 @@ function generateDraft() {
   var input = "業種: " + draftSelectedIndustry + "\nこの制度で取り組みたいこと: " + intents.join("、") + (extra ? "\n補足: " + extra : "");
   var btn = document.getElementById("draftBtn");
   btn.disabled = true;
-  status.innerHTML = '<span class="spinner"></span> 下書きを生成しています（30秒〜1分ほどかかります）…';
+  status.innerHTML = '<span class="spinner"></span> 下書きを生成しています…';
   fetch("/api/draft", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ programKey: state.programKey, company: state.company, userInput: input })
   }).then(function (res) {
     if (!res.ok) return res.json().then(function (e) { throw new Error(e.error || ("HTTP " + res.status)); });
-    return res.json();
-  }).then(function (data) {
-    btn.disabled = false;
     status.textContent = "";
-    document.getElementById("draftResult").value = data.draft || "";
-    document.getElementById("draftResultWrap").style.display = "block";
-    if (data.draft) addHistoryEntry("draft", state.programKey, draftDocLabel, data.draft);
+    return consumeTextStream(res, document.getElementById("draftResult"), document.getElementById("draftResultWrap"), function (text) {
+      btn.disabled = false;
+      if (text) addHistoryEntry("draft", state.programKey, draftDocLabel, text);
+    });
   }).catch(function (err) {
     btn.disabled = false;
     status.textContent = "生成に失敗しました（" + err.message + "）。時間をおいて再度お試しください。";
@@ -1419,7 +1437,7 @@ function generateFormFill() {
   var note = document.getElementById("formFillNote").value.trim();
   var btn = document.getElementById("formFillBtn");
   btn.disabled = true;
-  status.innerHTML = '<span class="spinner"></span> 記入内容を作成しています（20秒〜1分ほどかかります）…';
+  status.innerHTML = '<span class="spinner"></span> 記入内容を作成しています…';
   fetch("/api/fill-form", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -1433,13 +1451,11 @@ function generateFormFill() {
     })
   }).then(function (res) {
     if (!res.ok) return res.json().then(function (e) { throw new Error(e.error || ("HTTP " + res.status)); });
-    return res.json();
-  }).then(function (data) {
-    btn.disabled = false;
     status.textContent = "";
-    document.getElementById("formFillResult").value = data.fill || "";
-    document.getElementById("formFillResultWrap").style.display = "block";
-    if (data.fill) addHistoryEntry("formFill", currentFormFill.progKey, currentFormFill.doc.label, data.fill);
+    return consumeTextStream(res, document.getElementById("formFillResult"), document.getElementById("formFillResultWrap"), function (text) {
+      btn.disabled = false;
+      if (text) addHistoryEntry("formFill", currentFormFill.progKey, currentFormFill.doc.label, text);
+    });
   }).catch(function (err) {
     btn.disabled = false;
     status.textContent = "生成に失敗しました（" + err.message + "）。時間をおいて再度お試しください。";
