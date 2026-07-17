@@ -125,13 +125,42 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .diag-tags { display: flex; flex-wrap: wrap; gap: 0.3rem 0.8rem; }
   .diag-tags label { font-size: 0.88rem; cursor: pointer; display: flex; gap: 0.4rem; align-items: baseline; }
-  .pill-select { display: flex; gap: 0.55rem; overflow-x: auto; padding: 0.3rem 0.15rem 0.7rem; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
-  .pill-select label { position: relative; flex: 0 0 auto; scroll-snap-align: start; padding: 0.5rem 1.1rem;
-    font-size: 0.85rem; border: 1px solid var(--line); border-radius: 999px; background: var(--paper-raised);
-    cursor: pointer; white-space: nowrap; user-select: none; }
-  .pill-select label input { position: absolute; opacity: 0; pointer-events: none; }
-  .pill-select label:has(input:checked) { background: var(--accent-wash); border-color: var(--accent); color: var(--ink); font-weight: 700; }
-  .pill-select-hint { font-size: 0.78rem; color: var(--ink-faint); margin: -0.3rem 0 0.3rem; }
+  .dial-hint { font-size: 0.78rem; color: var(--ink-faint); margin: -0.3rem 0 0.3rem; }
+  .dial-wrap { position: relative; height: 9.5rem; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }
+  .dial-scroll { height: 100%; overflow-y: auto; scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; }
+  .dial-pad { height: 3.5rem; }
+  .dial-item { height: 2.5rem; display: flex; align-items: center; justify-content: center; scroll-snap-align: center;
+    font-size: 0.92rem; color: var(--ink-faint); cursor: pointer; transition: color 0.15s, font-weight 0.15s; text-align: center; padding: 0 0.5rem; }
+  .dial-item.selected { color: var(--ink); font-weight: 700; }
+  .dial-highlight { position: absolute; top: 3.5rem; left: 0; right: 0; height: 2.5rem;
+    border-top: 1px solid var(--accent); border-bottom: 1px solid var(--accent); background: var(--accent-wash); opacity: 0.4; pointer-events: none; }
+  .dial-multi { max-height: 14rem; overflow-y: auto; border: 1px solid var(--line); border-radius: 10px; }
+  .dial-item-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.65rem 1rem; border-bottom: 1px solid var(--line);
+    cursor: pointer; font-size: 0.9rem; user-select: none; }
+  .dial-item-row:last-child { border-bottom: none; }
+  .dial-item-row .chk { opacity: 0; width: 1em; color: var(--accent); font-weight: 700; flex: none; }
+  .dial-item-row.picked { background: var(--accent-wash); font-weight: 700; }
+  .dial-item-row.picked .chk { opacity: 1; }
+
+  .doc-item { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; padding: 0.35rem 0; flex-wrap: wrap; }
+  .doc-item label { flex: 1; min-width: 200px; }
+  .small-btn { padding: 0.3rem 0.75rem; font-size: 0.78rem; margin: 0; }
+
+  .stepper { display: flex; margin: 1rem 0 0.3rem; }
+  .stepper .step { flex: 1; text-align: center; position: relative; cursor: pointer; }
+  .stepper .step .line { position: absolute; top: 1.05rem; left: -50%; width: 100%; height: 2px; background: var(--line); z-index: 0; }
+  .stepper .step:first-child .line { display: none; }
+  .stepper .step.done .line { background: var(--sage); }
+  .stepper .step .dot { position: relative; z-index: 1; width: 2.1rem; height: 2.1rem; border-radius: 50%; background: var(--paper);
+    border: 2px solid var(--line); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.3rem;
+    font-weight: 700; font-size: 0.85rem; color: var(--ink-faint); }
+  .stepper .step.done .dot { background: var(--sage); border-color: var(--sage); color: var(--paper-raised); }
+  .stepper .step.current .dot { background: var(--accent); border-color: var(--accent); color: var(--paper-raised); }
+  .stepper .step-label { font-size: 0.68rem; color: var(--ink-soft); line-height: 1.3; }
+  .stepper-desc { font-size: 0.85rem; color: var(--ink-soft); background: var(--sage-wash); border-radius: 8px; padding: 0.6rem 0.9rem; margin: 0.5rem 0 1rem; }
+  .progress-mini { font-size: 0.82rem; color: var(--ink-soft); }
+  .progress-mini .bar { display: inline-block; width: 6rem; height: 0.5rem; background: var(--line); border-radius: 999px; overflow: hidden; vertical-align: middle; margin: 0 0.4rem; }
+  .progress-mini .bar-fill { display: block; height: 100%; background: var(--accent); }
   footer.site { margin-top: 3rem; padding-top: 1.2rem; border-top: 1px solid var(--line);
     font-size: 0.78rem; color: var(--ink-faint); }
 </style>
@@ -193,8 +222,16 @@
   <h3>申請準備チェックリスト</h3>
   <p class="sub">一般的に必要となる書類の目安です。制度・年度により変わるため、申請前に必ず最新の公式情報でご確認ください。チェック状態はこの端末に保存されます。</p>
   <div class="card doc-checklist" id="programChecklist"></div>
+
+  <h3 id="stepperApplyTitle"></h3>
+  <p class="sub">丸をクリックすると、そこまでのステップを完了済みにできます。進捗はこの端末に保存されます。</p>
+  <div id="stepperApply"></div>
+
+  <h3 id="stepperPaymentTitle"></h3>
+  <p class="sub">取組の実施後に進める、支給申請・実績報告までの進捗です。</p>
+  <div id="stepperPayment"></div>
+
   <button class="primary" onclick="showScreen('screen-howto')">申請の進め方を見る</button>
-  <button class="secondary" onclick="openDraftScreen()">AIで書類の下書きをつくる</button>
   <button class="ghost" onclick="showScreen('screen-results')">← 制度一覧に戻る</button>
 </section>
 
@@ -223,11 +260,14 @@
   <div class="notice legal" id="draftLegalNotice"></div>
   <div class="card">
     <label class="field">事業内容（業種を選択）</label>
-    <p class="pill-select-hint">← スライドして選択してください →</p>
-    <div class="pill-select" id="draftIndustrySelect"></div>
+    <p class="dial-hint">↕ スクロールして選択してください（中央の項目が選択されます）</p>
+    <div class="dial-wrap">
+      <div class="dial-highlight"></div>
+      <div class="dial-scroll" id="draftIndustryDial"></div>
+    </div>
     <label class="field">この制度でやりたいこと（複数選択可）</label>
-    <p class="pill-select-hint">← スライドして選択してください →</p>
-    <div class="pill-select" id="draftIntentSelect"></div>
+    <p class="dial-hint">↕ スクロールしてタップで選択してください</p>
+    <div class="dial-multi" id="draftIntentSelect"></div>
     <label class="field" for="draftExtra">補足（任意）</label>
     <textarea id="draftExtra" placeholder="例：客単価向上のため接客研修も強化したい。具体的な数値目標があれば記入してください。" style="min-height:70px;"></textarea>
     <button class="primary" id="draftBtn" onclick="generateDraft()">下書きを生成する</button>
@@ -238,6 +278,26 @@
     <textarea class="draft-area" id="draftResult"></textarea>
     <button class="secondary" onclick="copyDraft()">コピー</button>
     <button class="secondary" onclick="downloadDraft()">テキストファイルで保存</button>
+  </div>
+  <button class="ghost" onclick="showScreen('screen-program')">← 制度の詳細に戻る</button>
+</section>
+
+<!-- 5b. AIで様式の記入内容を作成 -->
+<section class="screen" id="screen-form-fill">
+  <h2>AIで様式の記入内容を作成（自己作成支援）</h2>
+  <p class="sub" id="formFillName"></p>
+  <div class="notice legal" id="formFillLegalNotice"></div>
+  <div class="card">
+    <label class="field" for="formFillNote">補足（任意）</label>
+    <textarea id="formFillNote" placeholder="この様式に関して伝えておきたい内容があれば入力してください。" style="min-height:70px;"></textarea>
+    <button class="primary" id="formFillBtn" onclick="generateFormFill()">記入内容を作成する</button>
+    <div id="formFillStatus" style="font-size:0.85rem;color:var(--ink-soft);"></div>
+  </div>
+  <div id="formFillResultWrap" style="display:none;">
+    <h3>作成された記入内容（自由に編集できます）</h3>
+    <textarea class="draft-area" id="formFillResult"></textarea>
+    <button class="secondary" onclick="copyFormFill()">コピー</button>
+    <button class="secondary" onclick="downloadFormFill()">テキストファイルで保存</button>
   </div>
   <button class="ghost" onclick="showScreen('screen-program')">← 制度の詳細に戻る</button>
 </section>
@@ -335,6 +395,7 @@
 /* ==================== 免責・法的文言（法務レビュー時はここだけ差し替える） ==================== */
 var DISCLAIMERS = {
   selfDraft: "この下書きは、申請者ご自身が作成するための<strong>参考たたき台（自己作成支援）</strong>です。本サービスが申請書類を作成・提出するものではありません。内容はご自身の責任で確認・編集のうえご利用ください。",
+  formFill: "この記入内容は、申請者ご自身が正式な様式（公式サイトからダウンロードしたExcel／Word／PDF等）に<strong>転記するための下書き（自己作成支援）</strong>です。本サービスが様式そのものを作成・提出するものではありません。不明な項目は【要確認】として示していますので、必ず最新の公式様式の指示に従い、内容をご自身で確認・編集のうえご利用ください。",
   licenseGyosei: "補助金の申請書類を<strong>報酬を得て</strong>作成・提出代理できるのは、行政書士法により<strong>行政書士</strong>に限られます（2026年1月施行の改正で名目を問わず明確化）。",
   licenseSharoushi: "雇用関係助成金の申請書類の作成・提出代行を<strong>報酬を得て</strong>行えるのは、社会保険労務士法により<strong>社会保険労務士</strong>に限られます。",
   footer: "本サービス（デモ版）は情報提供および申請者ご自身による書類作成の支援を目的としたものであり、官公署に提出する書類の作成・提出の代行は行いません。"
@@ -585,24 +646,232 @@ var PROGRAMS = {
   }
 };
 
-/* 一般的に必要となる書類の目安。制度・年度により変わるため、申請前に必ず最新の公式情報で確認すること */
+/* 一般的に必要となる書類の目安。制度・年度により変わるため、申請前に必ず最新の公式情報で確認すること。
+   kind: "external"=第三者発行・登録手続き等でAI記入非対応／"form"=申請者が記入する様式でAI記入シート対応／"businessPlan"=事業計画書(AI下書き機能の対象、対象は補助金系のみ) */
+function basicInfoForm(key) {
+  return { label: "申請者情報記入シート", kind: "form", formId: key + "_basic",
+    formPurpose: "会社名・所在地・代表者・業種・資本金・従業員数など、申請書類に共通して必要な基本情報を整理する記入シート" };
+}
 var PROGRAM_REQUIRED_DOCS = {
-  ai: ["GビズIDプライムのアカウント", "履歴事項全部証明書（法人）／本人確認書類（個人）", "直近の決算書（貸借対照表・損益計算書）", "導入するITツールの見積・提案資料", "労働者名簿（賃上げ要件を使う場合）", "SECURITY ACTION宣言"],
-  jizoku: ["経営計画書・補助事業計画書", "商工会議所・商工会の事業支援計画書（様式4）", "直近の決算書または確定申告書", "見積書（単価50万円以上の経費）", "GビズIDプライムのアカウント（電子申請の場合）"],
-  shoryokuka: ["GビズIDプライムのアカウント", "事業計画書（省力化の効果を示すもの）", "直近の決算書", "導入機器の見積書・カタログ", "労働者名簿", "賃上げ特例を使う場合は賃金台帳"],
-  monodukuri: ["GビズIDプライムのアカウント", "事業計画書（革新性・市場性・実現可能性を示すもの）", "直近2期分の決算書", "賃金引上げ計画の表明書", "見積書（相見積が必要な場合あり）", "従業員数を確認できる書類"],
-  career: ["キャリアアップ計画書（事前提出必須）", "就業規則または労働協約", "転換前後の雇用契約書・賃金台帳", "支給申請書", "出勤簿・タイムカード", "労働保険料の納付を証明する書類"],
-  trial: ["職業紹介状（ハローワーク等の紹介を証明する書類）", "試行雇用実施計画書", "雇用契約書（無期雇用を前提とする内容）", "出勤簿・賃金台帳", "支給申請書"],
-  tokutei: ["職業紹介状（ハローワーク等の紹介を証明する書類）", "対象者の状況を確認できる書類（年齢・障害者手帳等）", "雇用契約書", "出勤簿・賃金台帳", "支給申請書"],
-  ryoritsu: ["育休復帰支援プラン", "育児休業取得を証明する書類（辞令等）", "育休復帰後の雇用契約書・出勤簿", "支給申請書"],
-  kaizen: ["交付申請書", "賃金引上げ計画書", "労働者名簿・賃金台帳", "就業規則または労働条件通知書の写し", "設備導入等に係る見積書", "事業場内最低賃金を確認できる書類"],
-  jinzai: ["事業内職業能力開発計画・年間職業能力開発計画届（事前提出必須）", "訓練カリキュラム・訓練実施計画届", "訓練日誌・出勤簿", "訓練費用の領収書・支払証憑", "賃金台帳", "支給申請書"],
-  shokei: ["GビズIDプライムのアカウント", "事業承継計画・引継ぎの実施を示す書類", "直近の決算書（貸借対照表・損益計算書）", "対象経費の見積書", "賃上げ特例を使う場合は賃金台帳"],
-  koreisha: ["高年齢者雇用に関する規程・就業規則（定年引上げ・廃止等を反映したもの）", "就業規則の変更届（労働基準監督署の受理印があるもの）", "対象労働者の雇用契約書・賃金台帳", "支給申請書"],
-  telework: ["テレワーク実施に関する規程・就業規則", "テレワーク実施計画", "対象労働者のテレワーク実施記録", "支給申請書"],
-  hatarakikata: ["年次有給休暇管理簿", "就業規則（変更届を含む）", "実施した取組に係る発注書・領収書等の証憑", "交付申請書・事業実施計画書", "労働者名簿・賃金台帳"],
-  kaigo: ["介護支援プラン", "介護休業の取得を証明する書類（辞令等）", "介護休業復帰後の雇用契約書・出勤簿", "支給申請書"]
+  ai: [
+    basicInfoForm("ai"),
+    { label: "GビズIDプライムのアカウント", kind: "external" },
+    { label: "履歴事項全部証明書（法人）／本人確認書類（個人）", kind: "external" },
+    { label: "直近の決算書（貸借対照表・損益計算書）", kind: "external" },
+    { label: "導入するITツールの見積・提案資料", kind: "external" },
+    { label: "労働者名簿（賃上げ要件を使う場合）", kind: "external" },
+    { label: "SECURITY ACTION宣言", kind: "external" },
+    { label: "事業計画（ITツール導入計画）", kind: "businessPlan" }
+  ],
+  jizoku: [
+    basicInfoForm("jizoku"),
+    { label: "経営計画書・補助事業計画書", kind: "businessPlan" },
+    { label: "商工会議所・商工会の事業支援計画書（様式4）", kind: "external" },
+    { label: "直近の決算書または確定申告書", kind: "external" },
+    { label: "見積書（単価50万円以上の経費）", kind: "external" },
+    { label: "GビズIDプライムのアカウント（電子申請の場合）", kind: "external" },
+    { label: "賃金引上げ枠 表明書（記入シート）", kind: "form", formId: "jizoku_wage",
+      formPurpose: "賃金引上げ枠を利用する場合の、事業場内最低賃金の引き上げ計画を整理する記入シート" }
+  ],
+  shoryokuka: [
+    basicInfoForm("shoryokuka"),
+    { label: "GビズIDプライムのアカウント", kind: "external" },
+    { label: "事業計画書（省力化の効果を示すもの）", kind: "businessPlan" },
+    { label: "直近の決算書", kind: "external" },
+    { label: "導入機器の見積書・カタログ", kind: "external" },
+    { label: "労働者名簿", kind: "external" },
+    { label: "最低賃金引上げ特例 表明書（記入シート）", kind: "form", formId: "shoryokuka_wage",
+      formPurpose: "補助率優遇の特例を利用する場合の、最低賃金引上げ計画を整理する記入シート" }
+  ],
+  monodukuri: [
+    basicInfoForm("monodukuri"),
+    { label: "GビズIDプライムのアカウント", kind: "external" },
+    { label: "事業計画書（革新性・市場性・実現可能性を示すもの）", kind: "businessPlan" },
+    { label: "直近2期分の決算書", kind: "external" },
+    { label: "賃金引上げ計画表明書（記入シート）", kind: "form", formId: "monodukuri_wage",
+      formPurpose: "必須要件である給与支給総額の賃上げ計画（年平均成長率+3.5%以上等）を整理する記入シート" },
+    { label: "見積書（相見積が必要な場合あり）", kind: "external" },
+    { label: "従業員数を確認できる書類", kind: "external" }
+  ],
+  career: [
+    basicInfoForm("career"),
+    { label: "キャリアアップ計画書（事前提出必須・記入シート）", kind: "form", formId: "career_plan",
+      formPurpose: "パート・有期雇用労働者の正社員化の取組内容・実施時期を整理する事前提出用の計画書記入シート" },
+    { label: "就業規則または労働協約", kind: "external" },
+    { label: "転換前後の雇用契約書・賃金台帳", kind: "external" },
+    { label: "支給申請書", kind: "external" },
+    { label: "出勤簿・タイムカード", kind: "external" },
+    { label: "労働保険料の納付を証明する書類", kind: "external" }
+  ],
+  trial: [
+    basicInfoForm("trial"),
+    { label: "職業紹介状（ハローワーク等の紹介を証明する書類）", kind: "external" },
+    { label: "試行雇用実施計画書（記入シート）", kind: "form", formId: "trial_plan",
+      formPurpose: "試行雇用の対象者・実施期間・業務内容を整理する記入シート" },
+    { label: "雇用契約書（無期雇用を前提とする内容）", kind: "external" },
+    { label: "出勤簿・賃金台帳", kind: "external" },
+    { label: "支給申請書", kind: "external" }
+  ],
+  tokutei: [
+    basicInfoForm("tokutei"),
+    { label: "職業紹介状（ハローワーク等の紹介を証明する書類）", kind: "external" },
+    { label: "対象者の状況を確認できる書類（年齢・障害者手帳等）", kind: "external" },
+    { label: "雇用契約書", kind: "external" },
+    { label: "出勤簿・賃金台帳", kind: "external" },
+    { label: "支給申請書", kind: "external" }
+  ],
+  ryoritsu: [
+    basicInfoForm("ryoritsu"),
+    { label: "育休復帰支援プラン（記入シート）", kind: "form", formId: "ryoritsu_plan",
+      formPurpose: "対象労働者の育児休業取得・職場復帰を支援する具体的な取組内容を整理する記入シート" },
+    { label: "育児休業取得を証明する書類（辞令等）", kind: "external" },
+    { label: "育休復帰後の雇用契約書・出勤簿", kind: "external" },
+    { label: "支給申請書", kind: "external" }
+  ],
+  kaizen: [
+    basicInfoForm("kaizen"),
+    { label: "交付申請書", kind: "external" },
+    { label: "賃金引上げ計画書（記入シート）", kind: "form", formId: "kaizen_plan",
+      formPurpose: "事業場内最低賃金の引き上げ計画（50円以上）を整理する記入シート" },
+    { label: "労働者名簿・賃金台帳", kind: "external" },
+    { label: "就業規則または労働条件通知書の写し", kind: "external" },
+    { label: "設備導入等に係る見積書", kind: "external" },
+    { label: "事業場内最低賃金を確認できる書類", kind: "external" }
+  ],
+  jinzai: [
+    basicInfoForm("jinzai"),
+    { label: "事業内職業能力開発計画・年間職業能力開発計画届（事前提出必須・記入シート）", kind: "form", formId: "jinzai_plan",
+      formPurpose: "実施する訓練の内容・対象者・スケジュールを整理する事前提出用の記入シート" },
+    { label: "訓練カリキュラム・訓練実施計画届", kind: "external" },
+    { label: "訓練日誌・出勤簿", kind: "external" },
+    { label: "訓練費用の領収書・支払証憑", kind: "external" },
+    { label: "賃金台帳", kind: "external" },
+    { label: "支給申請書", kind: "external" }
+  ],
+  shokei: [
+    basicInfoForm("shokei"),
+    { label: "GビズIDプライムのアカウント", kind: "external" },
+    { label: "事業承継計画書", kind: "businessPlan" },
+    { label: "直近の決算書（貸借対照表・損益計算書）", kind: "external" },
+    { label: "対象経費の見積書", kind: "external" },
+    { label: "賃金引上げ計画表明書（記入シート・任意）", kind: "form", formId: "shokei_wage",
+      formPurpose: "補助上限額を引き上げる場合の、事業場内最低賃金+50円以上の賃上げ計画を整理する記入シート" },
+    { label: "賃上げ特例を使う場合は賃金台帳", kind: "external" }
+  ],
+  koreisha: [
+    basicInfoForm("koreisha"),
+    { label: "高年齢者雇用管理整備計画（記入シート）", kind: "form", formId: "koreisha_plan",
+      formPurpose: "定年引上げ・定年廃止・継続雇用制度の見直し内容を整理する記入シート" },
+    { label: "高年齢者雇用に関する規程・就業規則（定年引上げ・廃止等を反映したもの）", kind: "external" },
+    { label: "就業規則の変更届（労働基準監督署の受理印があるもの）", kind: "external" },
+    { label: "対象労働者の雇用契約書・賃金台帳", kind: "external" },
+    { label: "支給申請書", kind: "external" }
+  ],
+  telework: [
+    basicInfoForm("telework"),
+    { label: "テレワーク実施計画（記入シート）", kind: "form", formId: "telework_plan",
+      formPurpose: "テレワークの対象者・実施方法・目標を整理する記入シート" },
+    { label: "テレワーク実施に関する規程・就業規則", kind: "external" },
+    { label: "対象労働者のテレワーク実施記録", kind: "external" },
+    { label: "支給申請書", kind: "external" }
+  ],
+  hatarakikata: [
+    basicInfoForm("hatarakikata"),
+    { label: "時間外労働等改善計画（記入シート）", kind: "form", formId: "hatarakikata_plan",
+      formPurpose: "残業削減・年次有給休暇の取得促進に関する具体的な取組内容と成果目標を整理する記入シート" },
+    { label: "年次有給休暇管理簿", kind: "external" },
+    { label: "就業規則（変更届を含む）", kind: "external" },
+    { label: "実施した取組に係る発注書・領収書等の証憑", kind: "external" },
+    { label: "交付申請書・事業実施計画書", kind: "external" },
+    { label: "労働者名簿・賃金台帳", kind: "external" }
+  ],
+  kaigo: [
+    basicInfoForm("kaigo"),
+    { label: "介護支援プラン（記入シート）", kind: "form", formId: "kaigo_plan",
+      formPurpose: "対象労働者の介護休業取得・仕事と介護の両立を支援する具体的な取組内容を整理する記入シート" },
+    { label: "介護休業の取得を証明する書類（辞令等）", kind: "external" },
+    { label: "介護休業復帰後の雇用契約書・出勤簿", kind: "external" },
+    { label: "支給申請書", kind: "external" }
+  ]
 };
+function programHasBusinessPlan(key) {
+  var docs = PROGRAM_REQUIRED_DOCS[key] || [];
+  for (var i = 0; i < docs.length; i++) if (docs[i].kind === "businessPlan") return true;
+  return false;
+}
+
+/* ==================== 申請進捗ステップ(制度タイプ別の一般的な流れ。詳細は各制度の公式手続きを確認すること) ==================== */
+var STEP_TEMPLATES = {
+  hojokin: {
+    apply: { title: "STEP 1〜5: 交付申請までの進捗", steps: [
+      { label: "制度の選定", desc: "公募要領を確認し、自社が対象になるか確認する。" },
+      { label: "書類の準備", desc: "事業計画書など、申請に必要な様式を揃える。" },
+      { label: "士業の選定・依頼", desc: "自分で申請するか、行政書士に依頼するかを決める(依頼する場合は専門家を選び依頼する)。" },
+      { label: "Jグランツで電子申請", desc: "GビズIDプライムでログインし、Jグランツから提出する。" },
+      { label: "交付決定通知の確認", desc: "審査結果・交付決定通知を確認する。" }
+    ]},
+    payment: { title: "実績報告・精算の進捗", steps: [
+      { label: "事業の実施", desc: "交付決定後、採択された計画に沿って事業を実施する。" },
+      { label: "書類の準備", desc: "領収書・納品書等の証憑を整理し、実績報告書を作成する。" },
+      { label: "士業への相談", desc: "必要に応じて行政書士等に内容の確認を依頼する。" },
+      { label: "実績報告の提出", desc: "事業完了後、期限内にJグランツから実績報告を提出する。" },
+      { label: "確定・入金の確認", desc: "確定検査後、補助金額が確定し入金される。" }
+    ]}
+  },
+  joseikin: {
+    apply: { title: "STEP 1〜5: 計画届・事前手続きの進捗", steps: [
+      { label: "制度の選定", desc: "支給要領を確認し、自社が対象になるか確認する。" },
+      { label: "書類の準備", desc: "計画書等、事前提出が必要な様式を揃える。" },
+      { label: "士業の選定・依頼", desc: "自分で申請するか、社会保険労務士に依頼するかを決める(依頼する場合は専門家を選び依頼する)。" },
+      { label: "労働局・ハローワークへ提出", desc: "窓口へ直接持参、または郵送で提出する。" },
+      { label: "受理連絡の確認", desc: "計画届の受理通知・計画届番号などを確認する。" }
+    ]},
+    payment: { title: "支給申請の進捗", steps: [
+      { label: "取組の実施", desc: "計画に沿って対象の取組(雇用・制度導入等)を実施する。" },
+      { label: "書類の準備", desc: "出勤簿・賃金台帳等の証憑を整理し、支給申請書を作成する。" },
+      { label: "士業への相談", desc: "必要に応じて社会保険労務士等に内容の確認を依頼する。" },
+      { label: "労働局・ハローワークへ提出", desc: "申請期限内に、直接または郵送で支給申請書を提出する。" },
+      { label: "支給決定通知の確認", desc: "審査後、支給決定通知書を確認する。" }
+    ]}
+  }
+};
+var LS_PROGRESS_PREFIX = "concierge_progress_";
+function getProgress(progKey) {
+  return lsGet(LS_PROGRESS_PREFIX + progKey, { apply: 0, payment: 0 });
+}
+function setProgressStep(progKey, track, stepCount) {
+  var p = getProgress(progKey);
+  p[track] = stepCount;
+  lsSet(LS_PROGRESS_PREFIX + progKey, p);
+}
+function renderStepper(containerId, titleId, progKey, track) {
+  var p = PROGRAMS[progKey];
+  var tpl = STEP_TEMPLATES[p.type][track];
+  var progress = getProgress(progKey)[track] || 0;
+  document.getElementById(titleId).textContent = tpl.title;
+  var html = '<div class="stepper">';
+  for (var i = 0; i < tpl.steps.length; i++) {
+    var done = i < progress;
+    var current = i === progress;
+    html += '<div class="step' + (done ? " done" : "") + (current ? " current" : "") + '" onclick="setProgressStep(\'' + progKey + "', '" + track + "', " + (i + 1) + ');renderStepper(\'' + containerId + "', '" + titleId + "', '" + progKey + "', '" + track + '\')">'
+      + '<div class="line"></div><div class="dot">' + (done ? "✓" : (i + 1)) + '</div>'
+      + '<div class="step-label">' + esc(tpl.steps[i].label) + "</div></div>";
+  }
+  html += "</div>";
+  var descIdx = progress < tpl.steps.length ? progress : tpl.steps.length - 1;
+  html += '<div class="stepper-desc">' + (progress >= tpl.steps.length ? "すべてのステップが完了しました。" : "次のステップ: " + esc(tpl.steps[descIdx].label) + " — " + esc(tpl.steps[descIdx].desc)) + "</div>";
+  if (progress > 0) {
+    html += '<button type="button" class="ghost small-btn" onclick="setProgressStep(\'' + progKey + "', '" + track + "', " + (progress - 1) + ');renderStepper(\'' + containerId + "', '" + titleId + "', '" + progKey + "', '" + track + '\')">1つ前のステップに戻す</button>';
+  }
+  document.getElementById(containerId).innerHTML = html;
+}
+function progressSummary(progKey) {
+  var p = PROGRAMS[progKey];
+  var tpl = STEP_TEMPLATES[p.type];
+  var prog = getProgress(progKey);
+  var applyTotal = tpl.apply.steps.length, paymentTotal = tpl.payment.steps.length;
+  return { applyDone: prog.apply || 0, applyTotal: applyTotal, paymentDone: prog.payment || 0, paymentTotal: paymentTotal };
+}
 
 /* ==================== 併給可否ルール（ルールベース） ==================== */
 var HOJOKIN_KEYS = ["ai", "jizoku", "shoryokuka", "monodukuri", "shokei"];
@@ -870,6 +1139,8 @@ function openProgram(key) {
     + '<div style="margin-top:0.6rem;"><button class="ghost" onclick="toggleFavorite(\'' + key + '\')" id="fav-detail-' + key + '">'
     + (getFavorites().indexOf(key) !== -1 ? "★ ダッシュボードに保存済み" : "☆ ダッシュボードに保存") + "</button></div></div>";
   renderChecklist(key);
+  renderStepper("stepperApply", "stepperApplyTitle", key, "apply");
+  renderStepper("stepperPayment", "stepperPaymentTitle", key, "payment");
   showScreen("screen-program");
 }
 
@@ -886,29 +1157,87 @@ function renderChecklist(progKey) {
   var checked = getChecklistState(progKey);
   var html = "";
   for (var i = 0; i < docs.length; i++) {
-    html += '<label><input type="checkbox" ' + (checked.indexOf(i) !== -1 ? "checked " : "")
-      + 'onchange="onChecklistToggle(\'' + progKey + "', " + i + ', this.checked)"><span>' + esc(docs[i]) + "</span></label>";
+    var d = docs[i];
+    html += '<div class="doc-item"><label><input type="checkbox" ' + (checked.indexOf(i) !== -1 ? "checked " : "")
+      + 'onchange="onChecklistToggle(\'' + progKey + "', " + i + ', this.checked)"><span>' + esc(d.label) + "</span></label>";
+    if (d.kind === "businessPlan") {
+      html += '<button type="button" class="ghost small-btn" onclick="openDraftScreen()">AIで下書きを作成</button>';
+    } else if (d.kind === "form") {
+      html += '<button type="button" class="ghost small-btn" onclick="openFormFillScreen(\'' + progKey + "', " + i + ')">AIで記入内容を作成</button>';
+    }
+    html += "</div>";
   }
   document.getElementById("programChecklist").innerHTML = html || "<p>チェックリスト準備中</p>";
 }
 
-/* ==================== 5: AI下書き ==================== */
-function renderDraftSelectors() {
-  var industryHtml = "";
-  var guessedIndustry = state.company && state.company.industry ? state.company.industry : "";
-  for (var i = 0; i < INDUSTRY_OPTIONS.length; i++) {
-    var ind = INDUSTRY_OPTIONS[i];
-    var auto = guessedIndustry && guessedIndustry.indexOf(ind.replace(/（.*）/, "")) !== -1;
-    industryHtml += '<label><input type="radio" name="draftIndustry" value="' + esc(ind) + '"' + (auto ? " checked" : "") + '><span>' + esc(ind) + "</span></label>";
+/* ==================== 縦方向ダイヤル選択(単一選択)・縦スクロール複数選択の共通部品 ==================== */
+function baseLabel(s) { return s.replace(/（.*）/, ""); }
+function renderDial(containerId, items) {
+  var html = '<div class="dial-pad"></div>';
+  for (var i = 0; i < items.length; i++) {
+    html += '<div class="dial-item" data-value="' + esc(items[i]) + '">' + esc(items[i]) + "</div>";
   }
-  document.getElementById("draftIndustrySelect").innerHTML = industryHtml;
+  html += '<div class="dial-pad"></div>';
+  document.getElementById(containerId).innerHTML = html;
+}
+function updateDialSelection(containerId) {
+  var el = document.getElementById(containerId);
+  var items = el.querySelectorAll(".dial-item");
+  var rect = el.getBoundingClientRect();
+  var centerY = rect.top + rect.height / 2;
+  var closest = null, closestDist = Infinity;
+  for (var i = 0; i < items.length; i++) {
+    var r = items[i].getBoundingClientRect();
+    var dist = Math.abs((r.top + r.height / 2) - centerY);
+    if (dist < closestDist) { closestDist = dist; closest = items[i]; }
+  }
+  for (var j = 0; j < items.length; j++) items[j].classList.toggle("selected", items[j] === closest);
+  return closest ? closest.getAttribute("data-value") : null;
+}
+function attachDialScrollHandler(containerId, onChange) {
+  var el = document.getElementById(containerId);
+  var t = null;
+  el.addEventListener("scroll", function () {
+    clearTimeout(t);
+    t = setTimeout(function () { onChange(updateDialSelection(containerId)); }, 120);
+  });
+  var items = el.querySelectorAll(".dial-item");
+  for (var i = 0; i < items.length; i++) {
+    items[i].addEventListener("click", function (ev) {
+      ev.currentTarget.scrollIntoView({ block: "center", behavior: "smooth" });
+    });
+  }
+}
+function renderDialMulti(containerId) {
+  var items = INTENT_OPTIONS;
+  var html = "";
+  for (var i = 0; i < items.length; i++) {
+    html += '<div class="dial-item-row" data-value="' + esc(items[i].label) + '"><span class="chk">✓</span><span>' + esc(items[i].label) + "</span></div>";
+  }
+  var el = document.getElementById(containerId);
+  el.innerHTML = html;
+  var rows = el.querySelectorAll(".dial-item-row");
+  for (var j = 0; j < rows.length; j++) {
+    rows[j].addEventListener("click", function (ev) { ev.currentTarget.classList.toggle("picked"); });
+  }
+}
 
-  var intentHtml = "";
-  for (var j = 0; j < INTENT_OPTIONS.length; j++) {
-    var q = INTENT_OPTIONS[j];
-    intentHtml += '<label><input type="checkbox" name="draftIntent" value="' + esc(q.label) + '"><span>' + esc(q.label) + "</span></label>";
+/* ==================== 5: AI下書き（事業計画書が必要な制度のみ） ==================== */
+var draftSelectedIndustry = null;
+function renderDraftSelectors() {
+  renderDial("draftIndustryDial", INDUSTRY_OPTIONS);
+  attachDialScrollHandler("draftIndustryDial", function (val) { draftSelectedIndustry = val; });
+  var guessedIndustry = state.company && state.company.industry ? state.company.industry : "";
+  var defaultIdx = 0;
+  for (var i = 0; i < INDUSTRY_OPTIONS.length; i++) {
+    if (guessedIndustry && guessedIndustry.indexOf(baseLabel(INDUSTRY_OPTIONS[i])) !== -1) { defaultIdx = i; break; }
   }
-  document.getElementById("draftIntentSelect").innerHTML = intentHtml;
+  requestAnimationFrame(function () {
+    var items = document.querySelectorAll("#draftIndustryDial .dial-item");
+    if (items[defaultIdx]) items[defaultIdx].scrollIntoView({ block: "center" });
+    draftSelectedIndustry = updateDialSelection("draftIndustryDial");
+  });
+  renderDialMulti("draftIntentSelect");
 }
 function openDraftScreen() {
   var p = PROGRAMS[state.programKey];
@@ -920,14 +1249,13 @@ function openDraftScreen() {
 }
 function generateDraft() {
   var status = document.getElementById("draftStatus");
-  var industryEl = document.querySelector('input[name="draftIndustry"]:checked');
-  var intentEls = document.querySelectorAll('input[name="draftIntent"]:checked');
-  if (!industryEl) { status.textContent = "業種を選択してください。"; return; }
+  var intentEls = document.querySelectorAll("#draftIntentSelect .dial-item-row.picked");
+  if (!draftSelectedIndustry) { status.textContent = "業種を選択してください。"; return; }
   if (intentEls.length === 0) { status.textContent = "この制度でやりたいことを1つ以上選択してください。"; return; }
   var intents = [];
-  for (var i = 0; i < intentEls.length; i++) intents.push(intentEls[i].value);
+  for (var i = 0; i < intentEls.length; i++) intents.push(intentEls[i].getAttribute("data-value"));
   var extra = document.getElementById("draftExtra").value.trim();
-  var input = "業種: " + industryEl.value + "\nこの制度で取り組みたいこと: " + intents.join("、") + (extra ? "\n補足: " + extra : "");
+  var input = "業種: " + draftSelectedIndustry + "\nこの制度で取り組みたいこと: " + intents.join("、") + (extra ? "\n補足: " + extra : "");
   var btn = document.getElementById("draftBtn");
   btn.disabled = true;
   status.innerHTML = '<span class="spinner"></span> 下書きを生成しています（30秒〜1分ほどかかります）…';
@@ -959,6 +1287,65 @@ function downloadDraft() {
   var a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = "draft_" + (state.programKey || "document") + ".txt";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ==================== 5b: AIで様式の記入内容を作成 ==================== */
+var currentFormFill = null;
+function openFormFillScreen(progKey, docIndex) {
+  var doc = (PROGRAM_REQUIRED_DOCS[progKey] || [])[docIndex];
+  if (!doc) return;
+  currentFormFill = { progKey: progKey, doc: doc };
+  document.getElementById("formFillName").textContent = "対象様式: " + doc.label + "（" + PROGRAMS[progKey].name + "）";
+  document.getElementById("formFillLegalNotice").innerHTML = DISCLAIMERS.formFill;
+  document.getElementById("formFillNote").value = "";
+  document.getElementById("formFillResultWrap").style.display = "none";
+  showScreen("screen-form-fill");
+}
+function generateFormFill() {
+  if (!currentFormFill) return;
+  var status = document.getElementById("formFillStatus");
+  var note = document.getElementById("formFillNote").value.trim();
+  var btn = document.getElementById("formFillBtn");
+  btn.disabled = true;
+  status.innerHTML = '<span class="spinner"></span> 記入内容を作成しています（20秒〜1分ほどかかります）…';
+  fetch("/api/fill-form", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      programKey: currentFormFill.progKey,
+      formLabel: currentFormFill.doc.label,
+      formPurpose: currentFormFill.doc.formPurpose || "",
+      company: state.company,
+      registryProfile: state.registryProfile || null,
+      note: note
+    })
+  }).then(function (res) {
+    if (!res.ok) return res.json().then(function (e) { throw new Error(e.error || ("HTTP " + res.status)); });
+    return res.json();
+  }).then(function (data) {
+    btn.disabled = false;
+    status.textContent = "";
+    document.getElementById("formFillResult").value = data.fill || "";
+    document.getElementById("formFillResultWrap").style.display = "block";
+  }).catch(function (err) {
+    btn.disabled = false;
+    status.textContent = "生成に失敗しました（" + err.message + "）。時間をおいて再度お試しください。";
+  });
+}
+function copyFormFill() {
+  var ta = document.getElementById("formFillResult");
+  ta.select();
+  navigator.clipboard.writeText(ta.value).then(function () { alert("コピーしました。"); });
+}
+function downloadFormFill() {
+  var text = document.getElementById("formFillResult").value;
+  var blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  var id = currentFormFill && currentFormFill.doc.formId ? currentFormFill.doc.formId : "form";
+  a.download = "fill_" + id + ".txt";
   a.click();
   URL.revokeObjectURL(a.href);
 }
@@ -1083,8 +1470,15 @@ function renderDashboard() {
       if (days < 0) badge = '<span class="badge badge-days">締切超過</span>';
       else badge = '<span class="badge badge-days' + (days > 30 ? " far" : "") + '">残り ' + days + " 日</span>";
     }
+    var ps = progressSummary(e.key);
+    var applyPct = Math.round((ps.applyDone / ps.applyTotal) * 100);
+    var paymentPct = Math.round((ps.paymentDone / ps.paymentTotal) * 100);
     html += '<div class="card expert-card"><div>' + badge + typeBadge(e.p) + "<strong>" + esc(e.p.name) + "</strong>"
-      + '<div class="meta">' + esc(e.p.deadlineNote) + "</div></div>"
+      + '<div class="meta">' + esc(e.p.deadlineNote) + "</div>"
+      + '<div class="progress-mini">交付申請/計画届: ' + ps.applyDone + "/" + ps.applyTotal
+      + '<span class="bar"><span class="bar-fill" style="width:' + applyPct + '%"></span></span>　'
+      + "支給申請: " + ps.paymentDone + "/" + ps.paymentTotal
+      + '<span class="bar"><span class="bar-fill" style="width:' + paymentPct + '%"></span></span></div></div>'
       + '<div><button class="secondary" onclick="openProgram(\'' + e.key + '\')">準備を進める</button>'
       + '<button class="ghost" onclick="toggleFavorite(\'' + e.key + '\');renderDashboard()">保存を解除</button></div></div>';
   });

@@ -1,6 +1,7 @@
 import { handleAnalyzeCompany } from "./analyze-company.js";
 import { handleDraft } from "./draft.js";
 import { handleLookupCorporate } from "./lookup-corporate.js";
+import { handleFillForm } from "./fill-form.js";
 
 export default {
   async fetch(request, env) {
@@ -13,6 +14,9 @@ export default {
     }
     if (request.method === "POST" && url.pathname === "/api/lookup-corporate") {
       return handleLookupCorporate(request, env);
+    }
+    if (request.method === "POST" && url.pathname === "/api/fill-form") {
+      return handleFillForm(request, env);
     }
     return env.ASSETS.fetch(request);
   },
