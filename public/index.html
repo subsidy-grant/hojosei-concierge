@@ -665,7 +665,8 @@ var PROGRAM_REQUIRED_DOCS = {
   ],
   jizoku: [
     basicInfoForm("jizoku"),
-    { label: "経営計画書・補助事業計画書", kind: "businessPlan" },
+    { label: "経営計画書・補助事業計画書", kind: "businessPlan", formNumber: "様式2・様式3",
+      officialUrl: "https://www.chusho.meti.go.jp/koukai/hojyokin/kobo/2026/260527002.html" },
     { label: "商工会議所・商工会の事業支援計画書（様式4）", kind: "external" },
     { label: "直近の決算書または確定申告書", kind: "external" },
     { label: "見積書（単価50万円以上の経費）", kind: "external" },
@@ -695,22 +696,26 @@ var PROGRAM_REQUIRED_DOCS = {
   ],
   career: [
     basicInfoForm("career"),
-    { label: "キャリアアップ計画書（事前提出必須・記入シート）", kind: "form", formId: "career_plan",
-      formPurpose: "パート・有期雇用労働者の正社員化の取組内容・実施時期を整理する事前提出用の計画書記入シート" },
+    { label: "キャリアアップ計画書（事前提出必須・記入シート）", kind: "form", formId: "career_plan", formNumber: "様式第2号",
+      formPurpose: "パート・有期雇用労働者の正社員化の取組内容・実施時期を整理する事前提出用の計画書記入シート",
+      officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000118801_00016.html" },
     { label: "就業規則または労働協約", kind: "external" },
     { label: "転換前後の雇用契約書・賃金台帳", kind: "external" },
-    { label: "支給申請書", kind: "external" },
+    { label: "支給申請書（様式第3号・別添様式1-1/1-2）", kind: "external", formNumber: "様式第3号",
+      officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000118801_00016.html" },
     { label: "出勤簿・タイムカード", kind: "external" },
     { label: "労働保険料の納付を証明する書類", kind: "external" }
   ],
   trial: [
     basicInfoForm("trial"),
     { label: "職業紹介状（ハローワーク等の紹介を証明する書類）", kind: "external" },
-    { label: "試行雇用実施計画書（記入シート）", kind: "form", formId: "trial_plan",
-      formPurpose: "試行雇用の対象者・実施期間・業務内容を整理する記入シート" },
+    { label: "試行雇用実施計画書（記入シート・共通様式第1号）", kind: "form", formId: "trial_plan", formNumber: "共通様式第1号",
+      formPurpose: "試行雇用の対象者・実施期間・業務内容を整理する記入シート",
+      officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/koyou/kyufukin/trial_koyou_dl.html" },
     { label: "雇用契約書（無期雇用を前提とする内容）", kind: "external" },
     { label: "出勤簿・賃金台帳", kind: "external" },
-    { label: "支給申請書", kind: "external" }
+    { label: "結果報告書兼支給申請書（共通様式第2号）", kind: "external", formNumber: "共通様式第2号",
+      officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/koyou/kyufukin/trial_koyou_dl.html" }
   ],
   tokutei: [
     basicInfoForm("tokutei"),
@@ -718,21 +723,25 @@ var PROGRAM_REQUIRED_DOCS = {
     { label: "対象者の状況を確認できる書類（年齢・障害者手帳等）", kind: "external" },
     { label: "雇用契約書", kind: "external" },
     { label: "出勤簿・賃金台帳", kind: "external" },
-    { label: "支給申請書", kind: "external" }
+    { label: "支給申請書（様式第3号:第1期／様式第4号:第2期以降）", kind: "external", formNumber: "様式第3号・第4号",
+      officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/koyou/kyufukin/tokutei_konnan.html" }
   ],
   ryoritsu: [
     basicInfoForm("ryoritsu"),
-    { label: "育休復帰支援プラン（記入シート）", kind: "form", formId: "ryoritsu_plan",
-      formPurpose: "対象労働者の育児休業取得・職場復帰を支援する具体的な取組内容を整理する記入シート" },
+    { label: "育休復帰支援プラン（記入シート・様式第2号/第3号関連）", kind: "form", formId: "ryoritsu_plan", formNumber: "様式第2号・第3号",
+      formPurpose: "対象労働者の育児休業取得・職場復帰を支援する具体的な取組内容を整理する記入シート",
+      officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kodomo/shokuba_kosodate/ryouritsu01/index.html" },
     { label: "育児休業取得を証明する書類（辞令等）", kind: "external" },
     { label: "育休復帰後の雇用契約書・出勤簿", kind: "external" },
     { label: "支給申請書", kind: "external" }
   ],
   kaizen: [
     basicInfoForm("kaizen"),
-    { label: "交付申請書", kind: "external" },
-    { label: "賃金引上げ計画書（記入シート）", kind: "form", formId: "kaizen_plan",
-      formPurpose: "事業場内最低賃金の引き上げ計画（50円以上）を整理する記入シート" },
+    { label: "交付申請書（様式第1号）", kind: "external", formNumber: "様式第1号",
+      officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/roudoukijun/zigyonushi/shienjigyou/03.html" },
+    { label: "事業実施計画書・賃金引上げ計画書（記入シート・様式第1号別紙2）", kind: "form", formId: "kaizen_plan", formNumber: "様式第1号別紙2",
+      formPurpose: "事業場内最低賃金の引き上げ計画（50円以上）を整理する記入シート",
+      officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/roudoukijun/zigyonushi/shienjigyou/03.html" },
     { label: "労働者名簿・賃金台帳", kind: "external" },
     { label: "就業規則または労働条件通知書の写し", kind: "external" },
     { label: "設備導入等に係る見積書", kind: "external" },
@@ -740,13 +749,16 @@ var PROGRAM_REQUIRED_DOCS = {
   ],
   jinzai: [
     basicInfoForm("jinzai"),
-    { label: "事業内職業能力開発計画・年間職業能力開発計画届（事前提出必須・記入シート）", kind: "form", formId: "jinzai_plan",
-      formPurpose: "実施する訓練の内容・対象者・スケジュールを整理する事前提出用の記入シート" },
-    { label: "訓練カリキュラム・訓練実施計画届", kind: "external" },
+    { label: "職業訓練実施計画届（事前提出必須・記入シート・第1-1号）", kind: "form", formId: "jinzai_plan", formNumber: "第1-1号",
+      formPurpose: "実施する訓練の内容・対象者・スケジュールを整理する事前提出用の記入シート",
+      officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/38819_00010.html" },
+    { label: "対象労働者一覧（第3-1号）・訓練カリキュラム（第15号/第16号）", kind: "external", formNumber: "第3-1号・第15号・第16号",
+      officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/38819_00010.html" },
     { label: "訓練日誌・出勤簿", kind: "external" },
     { label: "訓練費用の領収書・支払証憑", kind: "external" },
     { label: "賃金台帳", kind: "external" },
-    { label: "支給申請書", kind: "external" }
+    { label: "支給申請書（第4-1号）・賃金助成等内訳（第5号）", kind: "external", formNumber: "第4-1号・第5号",
+      officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/38819_00010.html" }
   ],
   shokei: [
     basicInfoForm("shokei"),
@@ -761,7 +773,8 @@ var PROGRAM_REQUIRED_DOCS = {
   koreisha: [
     basicInfoForm("koreisha"),
     { label: "高年齢者雇用管理整備計画（記入シート）", kind: "form", formId: "koreisha_plan",
-      formPurpose: "定年引上げ・定年廃止・継続雇用制度の見直し内容を整理する記入シート" },
+      formPurpose: "定年引上げ・定年廃止・継続雇用制度の見直し内容を整理する記入シート",
+      officialUrl: "https://www.jeed.go.jp/elderly/subsidy/subsidy_keizoku_yousiki07.html" },
     { label: "高年齢者雇用に関する規程・就業規則（定年引上げ・廃止等を反映したもの）", kind: "external" },
     { label: "就業規則の変更届（労働基準監督署の受理印があるもの）", kind: "external" },
     { label: "対象労働者の雇用契約書・賃金台帳", kind: "external" },
@@ -770,15 +783,17 @@ var PROGRAM_REQUIRED_DOCS = {
   telework: [
     basicInfoForm("telework"),
     { label: "テレワーク実施計画（記入シート）", kind: "form", formId: "telework_plan",
-      formPurpose: "テレワークの対象者・実施方法・目標を整理する記入シート" },
+      formPurpose: "テレワークの対象者・実施方法・目標を整理する記入シート",
+      officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000199292_00010.html" },
     { label: "テレワーク実施に関する規程・就業規則", kind: "external" },
     { label: "対象労働者のテレワーク実施記録", kind: "external" },
     { label: "支給申請書", kind: "external" }
   ],
   hatarakikata: [
     basicInfoForm("hatarakikata"),
-    { label: "時間外労働等改善計画（記入シート）", kind: "form", formId: "hatarakikata_plan",
-      formPurpose: "残業削減・年次有給休暇の取得促進に関する具体的な取組内容と成果目標を整理する記入シート" },
+    { label: "働き方改革推進支援助成金交付申請書（記入シート・様式第1号）", kind: "form", formId: "hatarakikata_plan", formNumber: "様式第1号",
+      formPurpose: "残業削減・年次有給休暇の取得促進に関する具体的な取組内容と成果目標を整理する記入シート",
+      officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000120692.html" },
     { label: "年次有給休暇管理簿", kind: "external" },
     { label: "就業規則（変更届を含む）", kind: "external" },
     { label: "実施した取組に係る発注書・領収書等の証憑", kind: "external" },
@@ -788,7 +803,8 @@ var PROGRAM_REQUIRED_DOCS = {
   kaigo: [
     basicInfoForm("kaigo"),
     { label: "介護支援プラン（記入シート）", kind: "form", formId: "kaigo_plan",
-      formPurpose: "対象労働者の介護休業取得・仕事と介護の両立を支援する具体的な取組内容を整理する記入シート" },
+      formPurpose: "対象労働者の介護休業取得・仕事と介護の両立を支援する具体的な取組内容を整理する記入シート",
+      officialUrl: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kodomo/shokuba_kosodate/ryouritsu01/index.html" },
     { label: "介護休業の取得を証明する書類（辞令等）", kind: "external" },
     { label: "介護休業復帰後の雇用契約書・出勤簿", kind: "external" },
     { label: "支給申請書", kind: "external" }
@@ -844,6 +860,14 @@ function setProgressStep(progKey, track, stepCount) {
   p[track] = stepCount;
   lsSet(LS_PROGRESS_PREFIX + progKey, p);
 }
+function docsForTrack(progKey, track) {
+  var docs = PROGRAM_REQUIRED_DOCS[progKey] || [];
+  var paymentKeywords = ["支給申請", "実績報告", "確定"];
+  return docs.filter(function (d) {
+    var isPayment = paymentKeywords.some(function (k) { return d.label.indexOf(k) !== -1; });
+    return track === "payment" ? isPayment : !isPayment;
+  });
+}
 function renderStepper(containerId, titleId, progKey, track) {
   var p = PROGRAMS[progKey];
   var tpl = STEP_TEMPLATES[p.type][track];
@@ -859,7 +883,21 @@ function renderStepper(containerId, titleId, progKey, track) {
   }
   html += "</div>";
   var descIdx = progress < tpl.steps.length ? progress : tpl.steps.length - 1;
-  html += '<div class="stepper-desc">' + (progress >= tpl.steps.length ? "すべてのステップが完了しました。" : "次のステップ: " + esc(tpl.steps[descIdx].label) + " — " + esc(tpl.steps[descIdx].desc)) + "</div>";
+  var descText;
+  if (progress >= tpl.steps.length) {
+    descText = "すべてのステップが完了しました。";
+  } else {
+    descText = "次のステップ: " + esc(tpl.steps[descIdx].label) + " — " + esc(tpl.steps[descIdx].desc);
+    if (tpl.steps[descIdx].label === "書類の準備") {
+      var docList = docsForTrack(progKey, track);
+      if (docList.length > 0) {
+        descText += "<ul style='margin:0.5rem 0 0;padding-left:1.2rem;'>" + docList.map(function (d) {
+          return "<li>" + (d.formNumber ? "<strong>[" + esc(d.formNumber) + "]</strong> " : "") + esc(d.label) + "</li>";
+        }).join("") + "</ul>";
+      }
+    }
+  }
+  html += '<div class="stepper-desc">' + descText + "</div>";
   if (progress > 0) {
     html += '<button type="button" class="ghost small-btn" onclick="setProgressStep(\'' + progKey + "', '" + track + "', " + (progress - 1) + ');renderStepper(\'' + containerId + "', '" + titleId + "', '" + progKey + "', '" + track + '\')">1つ前のステップに戻す</button>';
   }
@@ -1159,7 +1197,11 @@ function renderChecklist(progKey) {
   for (var i = 0; i < docs.length; i++) {
     var d = docs[i];
     html += '<div class="doc-item"><label><input type="checkbox" ' + (checked.indexOf(i) !== -1 ? "checked " : "")
-      + 'onchange="onChecklistToggle(\'' + progKey + "', " + i + ', this.checked)"><span>' + esc(d.label) + "</span></label>";
+      + 'onchange="onChecklistToggle(\'' + progKey + "', " + i + ', this.checked)"><span>'
+      + (d.formNumber ? '<strong>[' + esc(d.formNumber) + ']</strong> ' : "") + esc(d.label) + "</span></label>";
+    if (d.officialUrl) {
+      html += '<a class="src-link" style="font-size:0.78rem;" href="' + esc(d.officialUrl) + '" target="_blank" rel="noopener noreferrer">公式様式を見る ↗</a>';
+    }
     if (d.kind === "businessPlan") {
       html += '<button type="button" class="ghost small-btn" onclick="openDraftScreen()">AIで下書きを作成</button>';
     } else if (d.kind === "form") {
