@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>補助金・助成金コンシェルジュ（デモ版）</title>
+<meta name="description" content="会社のホームページを入力するだけで、活用できる補助金・助成金を探し、申請準備からJグランツでの本人提出までを伴走するワンストップ支援サービスのデモ版です。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0ea; --paper-raised: #f8f9f4;
+    --ink: #1b2420; --ink-soft: #4a564d; --ink-faint: #7c8880;
+    --accent: #a8752f; --accent-soft: #e7d3ac; --accent-wash: #f2e9d6;
+    --sage: #5f7360; --sage-wash: #e2e8de;
+    --rust: #9c5539; --rust-wash: #ecdcd2;
+    --line: #d5cfbf; --shadow: rgba(27, 36, 32, 0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #12181a; --paper-raised: #182020;
+      --ink: #ece8e0; --ink-soft: #b7bdb0; --ink-faint: #838f83;
+      --accent: #dcab5c; --accent-soft: #4d3c1f; --accent-wash: #2b2313;
+      --sage: #93a88d; --sage-wash: #202823;
+      --rust: #d1937a; --rust-wash: #2c211d;
+      --line: #2c342e; --shadow: rgba(0, 0, 0, 0.4);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0 auto; max-width: 880px; padding: 0 1.2rem 4rem;
+    font-family: "Noto Sans JP", sans-serif; font-size: 15px; line-height: 1.9;
+    background: var(--paper); color: var(--ink);
+  }
+  header.site { padding: 2.2rem 0 1.2rem; border-bottom: 1px solid var(--line); }
+  header.site h1 { margin: 0; font-size: 1.5rem; letter-spacing: 0.04em; }
+  header.site .demo-badge {
+    display: inline-block; margin-left: 0.6rem; padding: 0.1rem 0.6rem;
+    font-size: 0.72rem; font-weight: 700; vertical-align: middle;
+    color: var(--rust); background: var(--rust-wash); border: 1px solid var(--rust); border-radius: 999px;
+  }
+  header.site p.lede { margin: 0.5rem 0 0; color: var(--ink-soft); font-size: 0.92rem; }
+  nav.appnav { position: sticky; top: 0; z-index: 20; display: flex; gap: 0.4rem; flex-wrap: wrap;
+    padding: 0.6rem 0; background: var(--paper); border-bottom: 1px solid var(--line); }
+  nav.appnav button {
+    padding: 0.35rem 0.9rem; font-family: inherit; font-size: 0.85rem; cursor: pointer;
+    color: var(--ink-soft); background: var(--paper-raised); border: 1px solid var(--line); border-radius: 999px;
+  }
+  nav.appnav button.active { color: var(--ink); background: var(--accent-wash); border-color: var(--accent); font-weight: 700; }
+
+  .screen { display: none; padding: 1.8rem 0; }
+  .screen.visible { display: block; }
+  .screen h2 { font-size: 1.25rem; margin: 0 0 0.3rem; }
+  .screen h3 { font-size: 1.02rem; margin: 1.6rem 0 0.5rem; }
+  .screen p.sub { margin: 0 0 1.2rem; color: var(--ink-soft); font-size: 0.9rem; }
+
+  .card { background: var(--paper-raised); border: 1px solid var(--line); border-radius: 12px;
+    padding: 1.1rem 1.3rem; margin: 0.8rem 0; box-shadow: 0 1px 4px var(--shadow); }
+  .notice { border-left: 4px solid var(--accent); background: var(--accent-wash);
+    padding: 0.7rem 1rem; border-radius: 0 8px 8px 0; font-size: 0.85rem; margin: 0.8rem 0; }
+  .notice.legal { border-left-color: var(--sage); background: var(--sage-wash); }
+  .notice.warn { border-left-color: var(--rust); background: var(--rust-wash); }
+
+  label.field { display: block; margin: 0.9rem 0 0.2rem; font-weight: 700; font-size: 0.9rem; }
+  input[type="url"], input[type="text"], input[type="email"], textarea, select {
+    width: 100%; padding: 0.6rem 0.8rem; font-family: inherit; font-size: 0.95rem;
+    color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 8px;
+  }
+  textarea { min-height: 110px; resize: vertical; line-height: 1.7; }
+  textarea.draft-area { min-height: 380px; font-size: 0.9rem; }
+
+  button.primary, button.secondary, button.ghost {
+    padding: 0.65rem 1.4rem; font-family: inherit; font-size: 0.95rem; font-weight: 700;
+    border-radius: 8px; cursor: pointer; margin: 0.4rem 0.4rem 0.4rem 0;
+  }
+  button.primary { color: var(--paper-raised); background: var(--accent); border: 1px solid var(--accent); }
+  button.secondary { color: var(--ink); background: var(--sage-wash); border: 1px solid var(--sage); }
+  button.ghost { color: var(--ink-soft); background: transparent; border: 1px solid var(--line); }
+  button:disabled { opacity: 0.5; cursor: wait; }
+
+  .badge { display: inline-block; padding: 0.05rem 0.55rem; font-size: 0.72rem; font-weight: 700;
+    border-radius: 999px; margin-right: 0.4rem; vertical-align: middle; }
+  .badge-hojokin { color: var(--accent); background: var(--accent-wash); border: 1px solid var(--accent); }
+  .badge-joseikin { color: var(--sage); background: var(--sage-wash); border: 1px solid var(--sage); }
+  .badge-license { color: var(--rust); background: var(--rust-wash); border: 1px solid var(--rust); }
+  .badge-days { color: var(--paper-raised); background: var(--rust); border: 1px solid var(--rust); }
+  .badge-days.far { background: var(--sage); border-color: var(--sage); }
+
+  details.prog-card { background: var(--paper-raised); border: 1px solid var(--line); border-radius: 12px;
+    margin: 0.7rem 0; box-shadow: 0 1px 4px var(--shadow); }
+  details.prog-card summary { list-style: none; cursor: pointer; padding: 0.9rem 1.2rem; font-weight: 700; }
+  details.prog-card summary::marker, details.prog-card summary::-webkit-details-marker { display: none; content: ""; }
+  details.prog-card .chevron { display: inline-block; margin-right: 0.5rem; transition: transform 0.15s; color: var(--ink-faint); }
+  details.prog-card[open] .chevron { transform: rotate(90deg); }
+  details.prog-card .prog-body { padding: 0 1.2rem 1.1rem; border-top: 1px dashed var(--line); }
+  .match-reason { font-size: 0.85rem; color: var(--ink-soft); background: var(--sage-wash);
+    border-radius: 8px; padding: 0.5rem 0.8rem; margin: 0.6rem 0; }
+  dl.spec { display: grid; grid-template-columns: 8.5em 1fr; gap: 0.15rem 0.8rem; font-size: 0.88rem; margin: 0.8rem 0; }
+  dl.spec dt { color: var(--ink-faint); font-weight: 700; }
+  dl.spec dd { margin: 0; }
+  a.src-link { color: var(--accent); font-size: 0.88rem; }
+
+  .doc-checklist label { display: flex; gap: 0.6rem; align-items: baseline; padding: 0.3rem 0;
+    font-size: 0.92rem; cursor: pointer; }
+  .doc-checklist label:has(input:checked) span { text-decoration: line-through; color: var(--ink-faint); }
+
+  .expert-card { display: flex; justify-content: space-between; gap: 1rem; align-items: center; flex-wrap: wrap; }
+  .expert-card .meta { font-size: 0.85rem; color: var(--ink-soft); }
+
+  table.plain { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  table.plain th, table.plain td { text-align: left; padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--line); }
+  table.plain th { color: var(--ink-faint); font-weight: 700; }
+  .table-scroll { overflow-x: auto; }
+
+  .step-list { counter-reset: step; list-style: none; padding: 0; }
+  .step-list li { position: relative; padding: 0.4rem 0 0.4rem 2.4rem; }
+  .step-list li::before { counter-increment: step; content: counter(step);
+    position: absolute; left: 0; top: 0.55rem; width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 700; color: var(--paper-raised); background: var(--sage); }
+  .spinner { display: inline-block; width: 1em; height: 1em; border: 2px solid var(--accent-soft);
+    border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: -0.15em; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .diag-tags { display: flex; flex-wrap: wrap; gap: 0.3rem 0.8rem; }
+  .diag-tags label { font-size: 0.88rem; cursor: pointer; display: flex; gap: 0.4rem; align-items: baseline; }
+  footer.site { margin-top: 3rem; padding-top: 1.2rem; border-top: 1px solid var(--line);
+    font-size: 0.78rem; color: var(--ink-faint); }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <h1>補助金・助成金コンシェルジュ<span class="demo-badge">デモ版</span></h1>
+  <p class="lede">会社のホームページを入力するだけで、活用できる補助金・助成金の候補探しから申請準備・Jグランツでのご自身での提出までを伴走します。</p>
+</header>
+
+<nav class="appnav" id="appnav">
+  <button data-screen="screen-home" onclick="showScreen('screen-home')">制度をさがす</button>
+  <button data-screen="screen-dashboard" onclick="showScreen('screen-dashboard')">締切ダッシュボード</button>
+  <button data-screen="screen-expert-side" onclick="showScreen('screen-expert-side')">専門家向け画面（デモ）</button>
+</nav>
+
+<!-- 1. 会社HP入力 -->
+<section class="screen" id="screen-home">
+  <h2>会社のホームページから制度をさがす</h2>
+  <p class="sub">ホームページのURLを入力すると、AIが事業内容を読み取り、活用できる可能性のある制度をリストアップします。</p>
+  <div class="card">
+    <label class="field" for="companyUrl">会社ホームページのURL</label>
+    <input type="url" id="companyUrl" placeholder="https://www.example.co.jp" inputmode="url">
+    <label class="field" for="companyDesc">事業内容・いま考えている取り組み（任意）</label>
+    <textarea id="companyDesc" placeholder="例：従業員8名の美容室。パートスタッフの正社員化と、予約管理システムの導入を検討している。"></textarea>
+    <button class="primary" id="analyzeBtn" onclick="analyzeCompany()">AIで活用できる制度をさがす</button>
+    <div id="analyzeStatus" style="font-size:0.85rem;color:var(--ink-soft);"></div>
+  </div>
+  <div class="notice">AIによる解析結果は<strong>推定</strong>です。実際の対象可否は必ず各制度の公式情報（公募要領・支給要領）でご確認ください。</div>
+  <h3>AIを使わずに簡易診断でさがす</h3>
+  <div class="card">
+    <div class="diag-tags" id="diagTags"></div>
+    <button class="secondary" onclick="runManualDiagnosis()">チェックした内容で制度をさがす</button>
+  </div>
+</section>
+
+<!-- 2. 制度リストアップ結果 -->
+<section class="screen" id="screen-results">
+  <h2>活用できる可能性のある制度</h2>
+  <p class="sub" id="resultsSub"></p>
+  <div id="companySummary"></div>
+  <div id="conflictBanner"></div>
+  <div id="resultsList"></div>
+  <button class="ghost" onclick="showScreen('screen-home')">← 条件を変えてさがし直す</button>
+</section>
+
+<!-- 3. 制度詳細+チェックリスト -->
+<section class="screen" id="screen-program">
+  <div id="programDetail"></div>
+  <h3>申請準備チェックリスト</h3>
+  <p class="sub">一般的に必要となる書類の目安です。制度・年度により変わるため、申請前に必ず最新の公式情報でご確認ください。チェック状態はこの端末に保存されます。</p>
+  <div class="card doc-checklist" id="programChecklist"></div>
+  <button class="primary" onclick="showScreen('screen-howto')">申請の進め方を見る</button>
+  <button class="secondary" onclick="openDraftScreen()">AIで書類の下書きをつくる</button>
+  <button class="ghost" onclick="showScreen('screen-results')">← 制度一覧に戻る</button>
+</section>
+
+<!-- 4. 申請の進め方 -->
+<section class="screen" id="screen-howto">
+  <h2>申請の進め方</h2>
+  <p class="sub" id="howtoProgName"></p>
+  <div class="card">
+    <ol class="step-list">
+      <li><strong>公式情報の確認</strong> — 公募要領・支給要領の最新版を読み、対象要件・締切・必要書類を確認します。</li>
+      <li><strong>GビズIDプライムの取得</strong> — 電子申請に必要なアカウントです。発行までに時間がかかるため、最初に申請しておきます（無料）。</li>
+      <li><strong>必要書類の準備</strong> — 前の画面のチェックリストを使って、決算書・事業計画書などを揃えます。AIの下書き機能もご活用ください。</li>
+      <li><strong>申請方法を選ぶ</strong> — ご自身で申請するか、国家資格を持つ専門家に相談・依頼するかを選びます。</li>
+      <li><strong>提出</strong> — 補助金はJグランツ等から、雇用系助成金は管轄の労働局・ハローワークへ提出します。</li>
+      <li><strong>採択・支給決定後の手続き</strong> — 補助金は事業実施後の<strong>実績報告</strong>まで完了して初めて入金されます。ここまでがワンセットです。</li>
+    </ol>
+  </div>
+  <button class="primary" onclick="openChooseScreen()">申請方法を選ぶ</button>
+  <button class="ghost" onclick="showScreen('screen-program')">← 制度の詳細に戻る</button>
+</section>
+
+<!-- 5. AI下書き -->
+<section class="screen" id="screen-draft">
+  <h2>AIによる書類下書き（自己作成支援）</h2>
+  <p class="sub" id="draftProgName"></p>
+  <div class="notice legal" id="draftLegalNotice"></div>
+  <div class="card">
+    <label class="field" for="draftInput">事業の内容・この制度でやりたいこと</label>
+    <textarea id="draftInput" placeholder="例：地域密着の美容室。客単価向上のためヘッドスパ機器を導入し、あわせてパート2名を正社員化したい。"></textarea>
+    <button class="primary" id="draftBtn" onclick="generateDraft()">下書きを生成する</button>
+    <div id="draftStatus" style="font-size:0.85rem;color:var(--ink-soft);"></div>
+  </div>
+  <div id="draftResultWrap" style="display:none;">
+    <h3>生成された下書き（自由に編集できます）</h3>
+    <textarea class="draft-area" id="draftResult"></textarea>
+    <button class="secondary" onclick="copyDraft()">コピー</button>
+    <button class="secondary" onclick="downloadDraft()">テキストファイルで保存</button>
+  </div>
+  <button class="ghost" onclick="showScreen('screen-program')">← 制度の詳細に戻る</button>
+</section>
+
+<!-- 6. 申請方法の選択 -->
+<section class="screen" id="screen-choose">
+  <h2>申請方法を選ぶ</h2>
+  <p class="sub" id="chooseProgName"></p>
+  <div class="card">
+    <h3 style="margin-top:0;">自分で申請する</h3>
+    <p style="font-size:0.9rem;">AIの下書きとチェックリストを使って、ご自身で書類を仕上げて提出します。費用はかかりません（ご自身で作成・提出する場合、資格は不要です）。</p>
+    <button class="primary" onclick="showScreen('screen-jgrants')">自分で申請する</button>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0;">専門家に相談・依頼する</h3>
+    <p style="font-size:0.9rem;" id="chooseLicenseNote"></p>
+    <button class="secondary" onclick="openExpertsScreen()">この制度に対応できる専門家を見る</button>
+  </div>
+  <button class="ghost" onclick="showScreen('screen-program')">← 制度の詳細に戻る</button>
+</section>
+
+<!-- 7. 専門家リスト -->
+<section class="screen" id="screen-experts">
+  <h2>この制度に対応できる専門家</h2>
+  <p class="sub" id="expertsSub"></p>
+  <div class="notice legal" id="expertsLegalNote"></div>
+  <div class="notice warn">以下は<strong>デモ用の架空データ</strong>です。実在の事務所・人物ではありません。</div>
+  <div id="expertsList"></div>
+  <button class="ghost" onclick="showScreen('screen-choose')">← 申請方法の選択に戻る</button>
+</section>
+
+<!-- 8. 依頼フォーム -->
+<section class="screen" id="screen-request">
+  <h2>相談・依頼を送る</h2>
+  <p class="sub" id="requestSub"></p>
+  <div class="card">
+    <label class="field" for="reqCompany">会社名・屋号</label>
+    <input type="text" id="reqCompany" placeholder="株式会社サンプル">
+    <label class="field" for="reqEmail">連絡先メールアドレス</label>
+    <input type="email" id="reqEmail" placeholder="you@example.co.jp">
+    <label class="field" for="reqMessage">相談内容</label>
+    <textarea id="reqMessage" placeholder="制度の対象になるかどうかの確認からお願いしたいです。"></textarea>
+    <button class="primary" onclick="submitRequest()">相談を送信する（デモ）</button>
+  </div>
+  <div class="notice warn">デモ版のため、実際の送信は行われません。入力内容はこの端末（ブラウザ）にのみ保存されます。</div>
+  <button class="ghost" onclick="showScreen('screen-experts')">← 専門家リストに戻る</button>
+</section>
+
+<!-- 9. Jグランツ本人提出ガイド -->
+<section class="screen" id="screen-jgrants">
+  <h2>ご自身で提出する</h2>
+  <p class="sub" id="jgrantsProgName"></p>
+  <div id="jgrantsGuide"></div>
+  <div class="notice legal">本サービスは提出の<strong>代行は行いません</strong>。提出はご自身のアカウントで行っていただきます（ご自身で申請する場合、資格は不要です）。</div>
+  <button class="primary" onclick="showScreen('screen-dashboard')">締切ダッシュボードで管理する</button>
+  <button class="ghost" onclick="showScreen('screen-choose')">← 申請方法の選択に戻る</button>
+</section>
+
+<!-- 締切ダッシュボード -->
+<section class="screen" id="screen-dashboard">
+  <h2>締切ダッシュボード</h2>
+  <p class="sub">保存した制度の締切と残り日数を一覧できます。制度カードの「☆ 保存」から追加できます。</p>
+  <div id="dashConflicts"></div>
+  <div id="dashList"></div>
+  <h3>送信済みの相談（デモ）</h3>
+  <div id="dashRequests"></div>
+</section>
+
+<!-- 専門家側モック -->
+<section class="screen" id="screen-expert-side">
+  <h2>専門家向け案件管理画面</h2>
+  <div class="notice warn">この画面は<strong>将来イメージのデモ</strong>です。表示されている案件・氏名はすべて架空のものです。</div>
+  <div class="card table-scroll">
+    <table class="plain">
+      <thead><tr><th>受信日</th><th>依頼者</th><th>制度</th><th>ステータス</th><th>次のアクション</th></tr></thead>
+      <tbody>
+        <tr><td>2026-07-14</td><td>（架空）カフェ・ドゥ・デモ</td><td>小規模事業者持続化補助金</td><td>要件確認中</td><td>決算書の受領待ち</td></tr>
+        <tr><td>2026-07-12</td><td>（架空）デモ精密工業</td><td>ものづくり補助金</td><td>事業計画レビュー</td><td>計画書 v2 に修正コメント返信</td></tr>
+        <tr><td>2026-07-10</td><td>（架空）サンプル美容室</td><td>キャリアアップ助成金</td><td>受任承諾済み</td><td>キャリアアップ計画書の確認</td></tr>
+        <tr><td>2026-07-08</td><td>（架空）デモ運輸</td><td>業務改善助成金</td><td>新規（未承諾）</td><td>受諾 / 辞退の回答</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:0.85rem;color:var(--ink-soft);">本番版では、受諾/辞退の選択・依頼者とのメッセージ・書類の受け渡し・報酬管理までをこの画面で行える設計を予定しています。</p>
+</section>
+
+<footer class="site">
+  <p id="footerDisclaimer"></p>
+  <p>掲載情報は各制度の公式発表に基づいていますが、最新の公募要領・支給要領を必ずご確認ください。本デモの解析結果・下書きは参考情報であり、支給や採択を保証するものではありません。</p>
+</footer>
+
+<script>
+"use strict";
+
+/* ==================== 免責・法的文言（法務レビュー時はここだけ差し替える） ==================== */
+var DISCLAIMERS = {
+  selfDraft: "この下書きは、申請者ご自身が作成するための<strong>参考たたき台（自己作成支援）</strong>です。本サービスが申請書類を作成・提出するものではありません。内容はご自身の責任で確認・編集のうえご利用ください。",
+  licenseGyosei: "補助金の申請書類を<strong>報酬を得て</strong>作成・提出代理できるのは、行政書士法により<strong>行政書士</strong>に限られます（2026年1月施行の改正で名目を問わず明確化）。",
+  licenseSharoushi: "雇用関係助成金の申請書類の作成・提出代行を<strong>報酬を得て</strong>行えるのは、社会保険労務士法により<strong>社会保険労務士</strong>に限られます。",
+  footer: "本サービス（デモ版）は情報提供および申請者ご自身による書類作成の支援を目的としたものであり、官公署に提出する書類の作成・提出の代行は行いません。"
+};
+
+/* ==================== 制度データ（姉妹サイトで公式ソース検証済みのデータを移植） ==================== */
+/* type: hojokin=補助金(競争審査型) / joseikin=助成金(要件充足型)。licenseType が専門家振り分けの根拠 */
+var PROGRAMS = {
+  ai: {
+    name: "デジタル化・AI導入補助金2026（旧IT導入補助金／通常枠）",
+    type: "hojokin", licenseType: "gyosei",
+    scale: "中小企業・小規模事業者（中小企業者の基準は業種により異なる）",
+    expense: "予約・顧客管理・会計等のソフトウェア購入費、クラウド利用料（最大2年分）、導入関連費",
+    rate: "1/2以内（要件充足で2/3）",
+    cap: "5万〜450万円（通常枠）",
+    wage: "必須ではない（要件充足で補助率を2/3に優遇）",
+    schedule: "通年で複数回の締切を設定",
+    deadline: "2026-07-21", deadlineNote: "3次締切 17:00（4次締切 2026-08-25）",
+    continuity: "2017年度のIT導入補助金創設以来、継続的に実施。名称・要件は年度ごとに改定",
+    note: "通常枠のほかインボイス枠（上限350万円）、セキュリティ対策推進枠（上限150万円）がある。",
+    link: "https://it-shien.smrj.go.jp/applicant/subsidy/normal/",
+    linkLabel: "公式サイト（通常枠）を見る",
+    matchesWhen: ["itInvestment", "efficiency"]
+  },
+  jizoku: {
+    name: "小規模事業者持続化補助金＜一般型・通常枠＞（第20回）",
+    type: "hojokin", licenseType: "gyosei",
+    scale: "小規模事業者（業種により従業員5人以下または20人以下。個人事業主も対象）",
+    expense: "機械装置等費、広報費、ウェブサイト関連費、展示会等出展費、旅費、開発費、委託外注費",
+    rate: "2/3以内",
+    cap: "通常枠50万円／賃金引上げ枠200万円／賃金引上げ＋インボイス特例併用250万円",
+    wage: "通常枠は任意。「賃金引上げ枠」は事業場内最低賃金の引き上げが必須",
+    schedule: "第20回は2026年11月5日〜12月15日受付予定",
+    deadline: "2026-12-15", deadlineNote: "第20回締切 17:00（受付開始 2026-11-05）",
+    continuity: "長年にわたり回を重ねて継続実施。次年度以降も継続見込み",
+    note: "販路開拓（広報費・Web関連費）と相性が良い。商工会議所等の支援を受けて申請する制度。",
+    link: "https://www.chusho.meti.go.jp/koukai/hojyokin/kobo/2026/260527002.html",
+    linkLabel: "第20回公募要領を見る",
+    matchesWhen: ["salesExpansion", "smallBiz"]
+  },
+  shoryokuka: {
+    name: "中小企業省力化投資補助金＜一般型＞",
+    type: "hojokin", licenseType: "gyosei",
+    scale: "中小企業者・小規模事業者（GビズIDプライムが必須）。従業員数に応じて上限額が変動",
+    expense: "自動化・省人化機器（自動精算機、清掃ロボット、自動洗髪機等）",
+    rate: "中小企業1/2（小規模事業者・再生事業者2/3）。最低賃金引上げ特例適用で2/3に優遇",
+    cap: "一般型：5人以下750万円〜101人以上8,000万円（大幅賃上げ時は増額）",
+    wage: "必須ではない。最低賃金引上げ特例で補助率優遇",
+    schedule: "年3〜4回のペースで継続公募中",
+    deadline: "2026-07-31", deadlineNote: "第7回締切 17:00（採択発表 11月中旬予定）",
+    continuity: "2024年度創設。次年度以降の実施は予算措置次第",
+    note: "人手不足対策の自動化・省人化機器の導入が対象。カタログ注文型（上限500万〜1,000万円）もある。",
+    link: "https://shoryokuka.smrj.go.jp/ippan/",
+    linkLabel: "公式サイトを見る",
+    matchesWhen: ["laborSaving", "equipmentInvestment"]
+  },
+  monodukuri: {
+    name: "新事業進出・ものづくり商業サービス補助金",
+    type: "hojokin", licenseType: "gyosei",
+    scale: "中小企業者・中堅企業者（旧ものづくり補助金と旧新事業進出補助金の統合後継制度）",
+    expense: "機械装置・システム構築費、技術導入費、外注費、専門家経費、クラウドサービス利用費、広告宣伝・販売促進費等",
+    rate: "1/2（特例2/3）。グローバル枠は2/3",
+    cap: "革新的新製品・サービス枠750万〜3,500万円／新事業進出枠2,500万〜9,000万円（従業員規模により変動）",
+    wage: "必須。給与支給総額の年平均成長率+3.5%以上等の賃上げ計画が必要",
+    schedule: "第1回公募：2026年8月31日申請受付開始",
+    deadline: "2026-09-30", deadlineNote: "第1回締切 18:00（受付開始 2026-08-31）",
+    continuity: "2026年度に統合・新設。継続実施される見込み",
+    note: "革新的な新製品・新サービス開発や新事業への進出など、大型の設備投資と相性が良い。",
+    link: "https://shinjigyou-monodukuri.smrj.go.jp/",
+    linkLabel: "公式サイトを見る",
+    matchesWhen: ["newBusiness", "equipmentInvestment"]
+  },
+  career: {
+    name: "キャリアアップ助成金（正社員化コース）",
+    type: "joseikin", licenseType: "sharoushi",
+    scale: "有期雇用労働者等を正社員化する事業主（事業所あたり年20名まで）",
+    expense: "正社員転換に伴う人件費相当（設備投資ではない）",
+    rate: "定額支給",
+    cap: "140万円／人（加算込。中小企業向け金額）",
+    wage: "必須（転換後に賃金3％以上の引上げが要件）",
+    schedule: "通年受付（随時支給。事前のキャリアアップ計画届出が必要）",
+    deadline: null, deadlineNote: "通年随時受付",
+    continuity: "恒久的な制度として毎年度実施",
+    note: "キャリアアップ計画書の事前提出が必須。転換前後の雇用契約書・賃金台帳の整備が必要。",
+    link: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/part_haken/jigyounushi/career.html",
+    linkLabel: "厚生労働省 公式ページを見る",
+    matchesWhen: ["regularize", "wageUp"]
+  },
+  trial: {
+    name: "トライアル雇用助成金（一般トライアルコース）",
+    type: "joseikin", licenseType: "sharoushi",
+    scale: "雇用保険適用事業所の事業主（全業種対象）",
+    expense: "職業経験不足等により就職が困難な求職者を、ハローワーク等の紹介により原則3か月間試行的に雇用する取り組み",
+    rate: "定額支給",
+    cap: "月額4万円×最大3か月＝12万円（母子家庭の母等は月額5万円×3か月）",
+    wage: "不要",
+    schedule: "通年随時受付（ハローワーク等の紹介日を起点に開始）",
+    deadline: null, deadlineNote: "通年随時受付",
+    continuity: "恒久的に実施中",
+    note: "ハローワーク・職業紹介事業者等の紹介を経ずに直接雇用した場合は対象外。",
+    link: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/koyou/kyufukin/trial_koyou.html",
+    linkLabel: "厚生労働省 公式ページを見る",
+    matchesWhen: ["trialHire", "newHireDifficult"]
+  },
+  tokutei: {
+    name: "特定求職者雇用開発助成金（特定就職困難者コース）",
+    type: "joseikin", licenseType: "sharoushi",
+    scale: "雇用保険適用事業所の事業主（中小企業とそれ以外で支給額が異なる）",
+    expense: "高年齢者（60歳以上）、障害者、母子家庭の母等をハローワーク等の紹介により継続雇用する取り組み",
+    rate: "定額支給（対象者区分ごと）",
+    cap: "重度障害者等（中小企業）240万円〜高年齢者等（中小企業）60万円など区分により変動（分割支給）",
+    wage: "必須要件ではない",
+    schedule: "通年随時受付",
+    deadline: null, deadlineNote: "通年随時受付",
+    continuity: "恒久的に実施中",
+    note: "ハローワーク等の紹介が必須。有期雇用は自動更新条項のある契約のみ対象。賃金台帳未提出は不支給。",
+    link: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/koyou/kyufukin/tokutei_konnan.html",
+    linkLabel: "厚生労働省 公式ページを見る",
+    matchesWhen: ["newHireDifficult", "seniorEmployment", "disabilityEmployment"]
+  },
+  ryoritsu: {
+    name: "両立支援等助成金（育児休業等支援コース）",
+    type: "joseikin", licenseType: "sharoushi",
+    scale: "中小企業事業主のみが対象",
+    expense: "「育休復帰支援プラン」を作成し、対象労働者の育児休業取得・職場復帰を計画的に支援する取り組み",
+    rate: "定額支給",
+    cap: "育休取得時30万円＋職場復帰時30万円＝労働者1人あたり最大62万円",
+    wage: "不要",
+    schedule: "通年随時受付（育休開始・終了を起点とした申請期限あり）",
+    deadline: null, deadlineNote: "通年随時受付（対象育休ごとに申請期限あり）",
+    continuity: "恒久的制度として実施中。2026年度に拡充改正",
+    note: "育休復帰支援プランの事前作成・実施が必須。",
+    link: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kodomo/shokuba_kosodate/ryouritsu01/index.html",
+    linkLabel: "厚生労働省 公式ページを見る",
+    matchesWhen: ["workLifeBalance"]
+  },
+  kaizen: {
+    name: "業務改善助成金",
+    type: "joseikin", licenseType: "sharoushi",
+    scale: "中小企業・小規模事業者で、事業場内最低賃金が地域別最低賃金を下回る事業場",
+    expense: "生産性向上に資する設備・機器の導入費全般",
+    rate: "3/4〜4/5",
+    cap: "450万円（特例600万円）。コースと引き上げ人数に応じて変動",
+    wage: "必須（事業場内最低賃金の50円以上の引き上げが前提条件）",
+    schedule: "2026年9月1日受付開始予定",
+    deadline: "2026-11-30", deadlineNote: "地域別最低賃金発効日前日または11/30の早い方（受付開始 2026-09-01）",
+    continuity: "毎年度実施。次年度以降も継続見込み",
+    note: "交付申請書・賃金引上げ計画書の提出が必要。設備導入等の見積書も必須。",
+    link: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/roudoukijun/zigyonushi/shienjigyou/03.html",
+    linkLabel: "厚生労働省 公式ページを見る",
+    matchesWhen: ["wageUp", "equipmentInvestment"]
+  },
+  jinzai: {
+    name: "人材開発支援助成金（人材育成支援コース）",
+    type: "joseikin", licenseType: "sharoushi",
+    scale: "労働者に10時間以上の訓練を実施する事業主（中小企業は助成率優遇）",
+    expense: "研修・訓練費用、訓練期間中の賃金",
+    rate: "経費助成45%＋賃金助成（大企業は経費助成30%）",
+    cap: "年間1,000万円",
+    wage: "基本不要",
+    schedule: "通年受付（随時支給）",
+    deadline: null, deadlineNote: "通年随時受付",
+    continuity: "恒久的な制度として毎年度実施",
+    note: "事業内職業能力開発計画・年間職業能力開発計画届の事前提出が必要。",
+    link: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/koyou/kyufukin/d01-1.html",
+    linkLabel: "厚生労働省 公式ページを見る",
+    matchesWhen: ["training"]
+  }
+};
+
+/* 一般的に必要となる書類の目安。制度・年度により変わるため、申請前に必ず最新の公式情報で確認すること */
+var PROGRAM_REQUIRED_DOCS = {
+  ai: ["GビズIDプライムのアカウント", "履歴事項全部証明書（法人）／本人確認書類（個人）", "直近の決算書（貸借対照表・損益計算書）", "導入するITツールの見積・提案資料", "労働者名簿（賃上げ要件を使う場合）", "SECURITY ACTION宣言"],
+  jizoku: ["経営計画書・補助事業計画書", "商工会議所・商工会の事業支援計画書（様式4）", "直近の決算書または確定申告書", "見積書（単価50万円以上の経費）", "GビズIDプライムのアカウント（電子申請の場合）"],
+  shoryokuka: ["GビズIDプライムのアカウント", "事業計画書（省力化の効果を示すもの）", "直近の決算書", "導入機器の見積書・カタログ", "労働者名簿", "賃上げ特例を使う場合は賃金台帳"],
+  monodukuri: ["GビズIDプライムのアカウント", "事業計画書（革新性・市場性・実現可能性を示すもの）", "直近2期分の決算書", "賃金引上げ計画の表明書", "見積書（相見積が必要な場合あり）", "従業員数を確認できる書類"],
+  career: ["キャリアアップ計画書（事前提出必須）", "就業規則または労働協約", "転換前後の雇用契約書・賃金台帳", "支給申請書", "出勤簿・タイムカード", "労働保険料の納付を証明する書類"],
+  trial: ["職業紹介状（ハローワーク等の紹介を証明する書類）", "試行雇用実施計画書", "雇用契約書（無期雇用を前提とする内容）", "出勤簿・賃金台帳", "支給申請書"],
+  tokutei: ["職業紹介状（ハローワーク等の紹介を証明する書類）", "対象者の状況を確認できる書類（年齢・障害者手帳等）", "雇用契約書", "出勤簿・賃金台帳", "支給申請書"],
+  ryoritsu: ["育休復帰支援プラン", "育児休業取得を証明する書類（辞令等）", "育休復帰後の雇用契約書・出勤簿", "支給申請書"],
+  kaizen: ["交付申請書", "賃金引上げ計画書", "労働者名簿・賃金台帳", "就業規則または労働条件通知書の写し", "設備導入等に係る見積書", "事業場内最低賃金を確認できる書類"],
+  jinzai: ["事業内職業能力開発計画・年間職業能力開発計画届（事前提出必須）", "訓練カリキュラム・訓練実施計画届", "訓練日誌・出勤簿", "訓練費用の領収書・支払証憑", "賃金台帳", "支給申請書"]
+};
+
+/* ==================== 併給可否ルール（ルールベース） ==================== */
+var HOJOKIN_KEYS = ["ai", "jizoku", "shoryokuka", "monodukuri"];
+var CONFLICT_RULES = [
+  { pair: ["trial", "tokutei"], reason: "同一の雇い入れについては、特定求職者雇用開発助成金の初回支給分とトライアル雇用助成金のどちらか一方を選択する扱いとされています（併給調整あり・最新の公式パンフレットで要確認）。" }
+];
+function checkConflicts(keys) {
+  var found = [];
+  var i, j;
+  for (i = 0; i < CONFLICT_RULES.length; i++) {
+    var r = CONFLICT_RULES[i];
+    if (keys.indexOf(r.pair[0]) !== -1 && keys.indexOf(r.pair[1]) !== -1) {
+      found.push({ a: r.pair[0], b: r.pair[1], reason: r.reason });
+    }
+  }
+  // 国の補助金同士：同一経費への重複受給は不可（一般原則）
+  var hojo = keys.filter(function (k) { return HOJOKIN_KEYS.indexOf(k) !== -1; });
+  for (i = 0; i < hojo.length; i++) {
+    for (j = i + 1; j < hojo.length; j++) {
+      found.push({ a: hojo[i], b: hojo[j], reason: "国の補助金は同一の経費に対して重複して受給できません。対象経費が重ならないよう事業を分ける必要があります（事業が別であれば併用できる場合があります）。" });
+    }
+  }
+  // 業務改善助成金と補助金：同一設備費用の重複計上不可
+  if (keys.indexOf("kaizen") !== -1) {
+    for (i = 0; i < hojo.length; i++) {
+      found.push({ a: "kaizen", b: hojo[i], reason: "業務改善助成金と国の補助金で、同一の設備費用を重複して計上することはできません。" });
+    }
+  }
+  return found;
+}
+
+/* ==================== 専門家データ（デモ用架空データ） ==================== */
+var LICENSE_LABEL = { gyosei: "行政書士", sharoushi: "社会保険労務士", bengoshi: "弁護士" };
+var EXPERTS = [
+  { id: "g1", name: "あおば行政書士事務所（架空）", license: "gyosei", specialties: ["jizoku", "ai", "shoryokuka"], area: "東京都", bio: "小規模事業者の販路開拓・IT導入の申請支援を中心に対応。" },
+  { id: "g2", name: "みなと総合行政書士法人（架空）", license: "gyosei", specialties: ["monodukuri", "shoryokuka"], area: "大阪府", bio: "製造業の大型設備投資・新事業進出の事業計画づくりが得意分野。" },
+  { id: "g3", name: "ひかり行政書士事務所（架空）", license: "gyosei", specialties: ["jizoku", "ai"], area: "福岡県", bio: "個人事業主・創業まもない事業者の初めての補助金申請を伴走支援。" },
+  { id: "s1", name: "さくら社会保険労務士事務所（架空）", license: "sharoushi", specialties: ["career", "trial", "tokutei"], area: "東京都", bio: "非正規スタッフの正社員化・採用系助成金の申請実務に多数対応。" },
+  { id: "s2", name: "かえで社労士法人（架空）", license: "sharoushi", specialties: ["ryoritsu", "career", "jinzai"], area: "愛知県", bio: "育休・両立支援と人材育成の制度設計から申請までワンストップ対応。" },
+  { id: "s3", name: "つばき社会保険労務士事務所（架空）", license: "sharoushi", specialties: ["kaizen", "career"], area: "北海道", bio: "最低賃金引き上げに伴う業務改善助成金の活用支援が中心。" },
+  { id: "b1", name: "デモ総合法律事務所（架空）", license: "bengoshi", specialties: [], area: "東京都", bio: "申請に関わる契約関係・法的リスクの相談に対応（書類作成は提携士業と連携）。" }
+];
+
+/* ==================== 簡易診断の質問 ==================== */
+var DIAGNOSIS_QUESTIONS = [
+  { key: "itInvestment", label: "予約・顧客管理・会計などのITツールを導入したい" },
+  { key: "laborSaving", label: "人手不足対策として自動化・省人化の機器を入れたい" },
+  { key: "equipmentInvestment", label: "設備・機器への投資を予定している" },
+  { key: "salesExpansion", label: "販路開拓・広告宣伝・Webサイト強化に取り組みたい" },
+  { key: "newBusiness", label: "新製品・新サービスの開発や新事業への進出を考えている" },
+  { key: "regularize", label: "パート・契約社員などを正社員化する予定がある" },
+  { key: "wageUp", label: "賃金の引き上げを検討している" },
+  { key: "training", label: "従業員向けの研修・訓練を実施する予定がある" },
+  { key: "trialHire", label: "ハローワーク等の紹介で求職者を試行的に雇用したい" },
+  { key: "newHireDifficult", label: "就職が難しい方（高齢者・障害者・ひとり親等）を雇用する予定がある" },
+  { key: "workLifeBalance", label: "育児休業の取得・職場復帰を計画的に支援したい" },
+  { key: "smallBiz", label: "従業員20人以下の小規模な事業者である" }
+];
+
+/* ==================== 状態・ユーティリティ ==================== */
+var state = { programKey: null, matches: null, company: null };
+var LS = {
+  saved: "concierge_savedPrograms",
+  checklist: "concierge_checklist_",
+  requests: "concierge_requests",
+  analysis: "concierge_lastAnalysis"
+};
+function lsGet(key, fallback) {
+  try { var raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch (e) { return fallback; }
+}
+function lsSet(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* private mode 等では保存しない */ }
+}
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+function typeBadge(p) {
+  return p.type === "hojokin"
+    ? '<span class="badge badge-hojokin">補助金・審査あり</span>'
+    : '<span class="badge badge-joseikin">助成金・要件充足型</span>';
+}
+function licenseNoteFor(p) {
+  return p.licenseType === "gyosei" ? DISCLAIMERS.licenseGyosei : DISCLAIMERS.licenseSharoushi;
+}
+
+/* ==================== 画面切替 ==================== */
+function showScreen(id) {
+  var screens = document.querySelectorAll(".screen");
+  for (var i = 0; i < screens.length; i++) screens[i].classList.remove("visible");
+  var el = document.getElementById(id);
+  if (el) el.classList.add("visible");
+  var navBtns = document.querySelectorAll("nav.appnav button");
+  for (var j = 0; j < navBtns.length; j++) {
+    navBtns[j].classList.toggle("active", navBtns[j].getAttribute("data-screen") === id);
+  }
+  if (id === "screen-dashboard") renderDashboard();
+  if (id === "screen-jgrants") renderJgrants();
+  window.scrollTo({ top: 0 });
+}
+
+/* ==================== 1→2: 会社解析・制度リストアップ ==================== */
+function analyzeCompany() {
+  var url = document.getElementById("companyUrl").value.trim();
+  var desc = document.getElementById("companyDesc").value.trim();
+  var status = document.getElementById("analyzeStatus");
+  if (!url && !desc) { status.textContent = "URLか事業内容のどちらかを入力してください。"; return; }
+  var btn = document.getElementById("analyzeBtn");
+  btn.disabled = true;
+  status.innerHTML = '<span class="spinner"></span> AIが事業内容を読み取っています（10〜30秒ほどかかります）…';
+  fetch("/api/analyze-company", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url: url, description: desc })
+  }).then(function (res) {
+    if (!res.ok) return res.json().then(function (e) { throw new Error(e.error || ("HTTP " + res.status)); });
+    return res.json();
+  }).then(function (data) {
+    btn.disabled = false;
+    status.textContent = "";
+    state.company = data.company || null;
+    state.matches = data.matches || [];
+    lsSet(LS.analysis, { company: state.company, matches: state.matches });
+    renderResults("AIによる解析結果");
+    showScreen("screen-results");
+  }).catch(function (err) {
+    btn.disabled = false;
+    status.textContent = "解析に失敗しました（" + err.message + "）。下の簡易診断もお試しください。";
+  });
+}
+
+function renderDiagTags() {
+  var html = "";
+  for (var i = 0; i < DIAGNOSIS_QUESTIONS.length; i++) {
+    var q = DIAGNOSIS_QUESTIONS[i];
+    html += '<label><input type="checkbox" value="' + q.key + '"><span>' + esc(q.label) + "</span></label>";
+  }
+  document.getElementById("diagTags").innerHTML = html;
+}
+
+function runManualDiagnosis() {
+  var checked = [];
+  var boxes = document.querySelectorAll("#diagTags input:checked");
+  for (var i = 0; i < boxes.length; i++) checked.push(boxes[i].value);
+  if (checked.length === 0) { alert("あてはまる項目にチェックを入れてください。"); return; }
+  var matches = [];
+  Object.keys(PROGRAMS).forEach(function (k) {
+    var hit = PROGRAMS[k].matchesWhen.filter(function (m) { return checked.indexOf(m) !== -1; });
+    if (hit.length > 0) matches.push({ programKey: k, reason: "チェックした取り組み内容と合致します。" });
+  });
+  state.company = null;
+  state.matches = matches;
+  renderResults("簡易診断の結果");
+  showScreen("screen-results");
+}
+
+function renderResults(subtitle) {
+  var matches = state.matches || [];
+  document.getElementById("resultsSub").textContent =
+    subtitle + "：" + matches.length + "件の制度が候補になりました。カードを開いて詳細を確認できます。";
+  var cs = document.getElementById("companySummary");
+  if (state.company) {
+    cs.innerHTML = '<div class="card" style="font-size:0.88rem;"><strong>AIが読み取った事業プロフィール（推定）</strong><br>'
+      + "業種: " + esc(state.company.industry || "不明") + " ／ 規模: " + esc(state.company.scaleGuess || "不明")
+      + (state.company.attributes && state.company.attributes.length ? "<br>注目ポイント: " + esc(state.company.attributes.join("、")) : "")
+      + "</div>";
+  } else { cs.innerHTML = ""; }
+
+  var keys = matches.map(function (m) { return m.programKey; });
+  var conflicts = checkConflicts(keys);
+  var cb = document.getElementById("conflictBanner");
+  if (conflicts.length > 0) {
+    var chtml = "<strong>併給に注意が必要な組み合わせがあります</strong><ul style='margin:0.4rem 0 0;padding-left:1.2rem;'>";
+    conflicts.forEach(function (c) {
+      chtml += "<li>「" + esc(PROGRAMS[c.a].name) + "」と「" + esc(PROGRAMS[c.b].name) + "」: " + esc(c.reason) + "</li>";
+    });
+    cb.innerHTML = '<div class="notice warn">' + chtml + "</ul></div>";
+  } else { cb.innerHTML = ""; }
+
+  var html = "";
+  matches.forEach(function (m) {
+    var p = PROGRAMS[m.programKey];
+    if (!p) return;
+    html += '<details class="prog-card"><summary><span class="chevron">▶</span>' + typeBadge(p) + esc(p.name) + "</summary>"
+      + '<div class="prog-body">'
+      + (m.reason ? '<div class="match-reason">この制度が候補になった理由: ' + esc(m.reason) + "</div>" : "")
+      + '<dl class="spec"><dt>対象</dt><dd>' + esc(p.scale) + "</dd>"
+      + "<dt>対象経費・取組</dt><dd>" + esc(p.expense) + "</dd>"
+      + "<dt>補助率・支給額</dt><dd>" + esc(p.rate) + " ／ 上限: " + esc(p.cap) + "</dd>"
+      + "<dt>締切</dt><dd>" + esc(p.deadlineNote) + "</dd></dl>"
+      + '<button class="primary" onclick="openProgram(\'' + m.programKey + '\')">この制度で申請準備を始める</button>'
+      + '<button class="ghost" onclick="toggleFavorite(\'' + m.programKey + '\')" id="fav-' + m.programKey + '">'
+      + (getFavorites().indexOf(m.programKey) !== -1 ? "★ 保存済み" : "☆ 保存") + "</button>"
+      + "</div></details>";
+  });
+  if (matches.length === 0) {
+    html = '<div class="card">条件に合う制度が見つかりませんでした。入力内容を変えるか、簡易診断をお試しください。</div>';
+  }
+  document.getElementById("resultsList").innerHTML = html;
+}
+
+/* ==================== 3: 制度詳細+チェックリスト ==================== */
+function openProgram(key) {
+  state.programKey = key;
+  var p = PROGRAMS[key];
+  document.getElementById("programDetail").innerHTML =
+    "<h2>" + typeBadge(p) + esc(p.name) + "</h2>"
+    + '<div class="card"><dl class="spec">'
+    + "<dt>対象</dt><dd>" + esc(p.scale) + "</dd>"
+    + "<dt>対象経費・取組</dt><dd>" + esc(p.expense) + "</dd>"
+    + "<dt>補助率・支給額</dt><dd>" + esc(p.rate) + "</dd>"
+    + "<dt>上限額</dt><dd>" + esc(p.cap) + "</dd>"
+    + "<dt>賃上げ要件</dt><dd>" + esc(p.wage) + "</dd>"
+    + "<dt>スケジュール</dt><dd>" + esc(p.schedule) + "（" + esc(p.deadlineNote) + "）</dd>"
+    + "<dt>継続性</dt><dd>" + esc(p.continuity) + "</dd>"
+    + "<dt>留意点</dt><dd>" + esc(p.note) + "</dd></dl>"
+    + '<a class="src-link" href="' + esc(p.link) + '" target="_blank" rel="noopener noreferrer">' + esc(p.linkLabel) + " ↗</a>"
+    + '<div style="margin-top:0.6rem;"><button class="ghost" onclick="toggleFavorite(\'' + key + '\')" id="fav-detail-' + key + '">'
+    + (getFavorites().indexOf(key) !== -1 ? "★ ダッシュボードに保存済み" : "☆ ダッシュボードに保存") + "</button></div></div>";
+  renderChecklist(key);
+  showScreen("screen-program");
+}
+
+function getChecklistState(progKey) { return lsGet(LS.checklist + progKey, []); }
+function onChecklistToggle(progKey, idx, isChecked) {
+  var stateArr = getChecklistState(progKey);
+  var pos = stateArr.indexOf(idx);
+  if (isChecked && pos === -1) stateArr.push(idx);
+  if (!isChecked && pos !== -1) stateArr.splice(pos, 1);
+  lsSet(LS.checklist + progKey, stateArr);
+}
+function renderChecklist(progKey) {
+  var docs = PROGRAM_REQUIRED_DOCS[progKey] || [];
+  var checked = getChecklistState(progKey);
+  var html = "";
+  for (var i = 0; i < docs.length; i++) {
+    html += '<label><input type="checkbox" ' + (checked.indexOf(i) !== -1 ? "checked " : "")
+      + 'onchange="onChecklistToggle(\'' + progKey + "', " + i + ', this.checked)"><span>' + esc(docs[i]) + "</span></label>";
+  }
+  document.getElementById("programChecklist").innerHTML = html || "<p>チェックリスト準備中</p>";
+}
+
+/* ==================== 5: AI下書き ==================== */
+function openDraftScreen() {
+  var p = PROGRAMS[state.programKey];
+  document.getElementById("draftProgName").textContent = "対象制度: " + p.name;
+  document.getElementById("draftLegalNotice").innerHTML = DISCLAIMERS.selfDraft;
+  document.getElementById("draftResultWrap").style.display = "none";
+  showScreen("screen-draft");
+}
+function generateDraft() {
+  var input = document.getElementById("draftInput").value.trim();
+  var status = document.getElementById("draftStatus");
+  if (!input) { status.textContent = "事業の内容を入力してください。"; return; }
+  var btn = document.getElementById("draftBtn");
+  btn.disabled = true;
+  status.innerHTML = '<span class="spinner"></span> 下書きを生成しています（30秒〜1分ほどかかります）…';
+  fetch("/api/draft", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ programKey: state.programKey, company: state.company, userInput: input })
+  }).then(function (res) {
+    if (!res.ok) return res.json().then(function (e) { throw new Error(e.error || ("HTTP " + res.status)); });
+    return res.json();
+  }).then(function (data) {
+    btn.disabled = false;
+    status.textContent = "";
+    document.getElementById("draftResult").value = data.draft || "";
+    document.getElementById("draftResultWrap").style.display = "block";
+  }).catch(function (err) {
+    btn.disabled = false;
+    status.textContent = "生成に失敗しました（" + err.message + "）。時間をおいて再度お試しください。";
+  });
+}
+function copyDraft() {
+  var ta = document.getElementById("draftResult");
+  ta.select();
+  navigator.clipboard.writeText(ta.value).then(function () { alert("コピーしました。"); });
+}
+function downloadDraft() {
+  var text = document.getElementById("draftResult").value;
+  var blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "draft_" + (state.programKey || "document") + ".txt";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ==================== 6→7→8: 申請方法選択・専門家・依頼 ==================== */
+function openChooseScreen() {
+  var p = PROGRAMS[state.programKey];
+  document.getElementById("chooseProgName").textContent = "対象制度: " + p.name;
+  document.getElementById("chooseLicenseNote").innerHTML =
+    "この制度の書類作成を<strong>報酬を得て</strong>依頼できるのは<strong>" + LICENSE_LABEL[p.licenseType] + "</strong>です。" +
+    "対応できる専門家のみを表示します。";
+  showScreen("screen-choose");
+}
+function openExpertsScreen() {
+  var p = PROGRAMS[state.programKey];
+  document.getElementById("expertsSub").textContent = "対象制度: " + p.name;
+  document.getElementById("expertsLegalNote").innerHTML = licenseNoteFor(p);
+  var list = EXPERTS.filter(function (e) { return e.license === p.licenseType; });
+  var html = "";
+  list.forEach(function (e) {
+    var strong = e.specialties.indexOf(state.programKey) !== -1;
+    html += '<div class="card expert-card"><div>'
+      + '<span class="badge badge-license">' + LICENSE_LABEL[e.license] + "</span><strong>" + esc(e.name) + "</strong>"
+      + (strong ? ' <span class="badge badge-joseikin">この制度の対応実績あり（デモ表示）</span>' : "")
+      + '<div class="meta">' + esc(e.area) + " ／ " + esc(e.bio) + "</div></div>"
+      + '<button class="primary" onclick="openRequestScreen(\'' + e.id + '\')">相談する</button></div>';
+  });
+  document.getElementById("expertsList").innerHTML = html || '<div class="card">対応できる専門家が見つかりませんでした。</div>';
+  showScreen("screen-experts");
+}
+var currentExpertId = null;
+function openRequestScreen(expertId) {
+  currentExpertId = expertId;
+  var e = EXPERTS.filter(function (x) { return x.id === expertId; })[0];
+  var p = PROGRAMS[state.programKey];
+  document.getElementById("requestSub").textContent = e.name + " へ「" + p.name + "」について相談します。";
+  showScreen("screen-request");
+}
+function submitRequest() {
+  var company = document.getElementById("reqCompany").value.trim();
+  var email = document.getElementById("reqEmail").value.trim();
+  var message = document.getElementById("reqMessage").value.trim();
+  if (!company || !email) { alert("会社名と連絡先を入力してください。"); return; }
+  var requests = lsGet(LS.requests, []);
+  var e = EXPERTS.filter(function (x) { return x.id === currentExpertId; })[0];
+  requests.push({
+    date: new Date().toISOString().slice(0, 10),
+    expertName: e ? e.name : "", programKey: state.programKey,
+    company: company, email: email, message: message, status: "送信済み（デモ）"
+  });
+  lsSet(LS.requests, requests);
+  alert("相談を受け付けました（デモのため実際の送信は行われません）。ダッシュボードで確認できます。");
+  showScreen("screen-dashboard");
+}
+
+/* ==================== 9: Jグランツ本人提出ガイド ==================== */
+function renderJgrants() {
+  var p = state.programKey ? PROGRAMS[state.programKey] : null;
+  document.getElementById("jgrantsProgName").textContent = p ? "対象制度: " + p.name : "";
+  var isHojokin = !p || p.type === "hojokin";
+  var html = '<div class="card"><ol class="step-list">';
+  if (isHojokin) {
+    html += "<li><strong>GビズIDプライムを取得する</strong> — <a class='src-link' href='https://gbiz-id.go.jp/' target='_blank' rel='noopener noreferrer'>GビズID 公式サイト ↗</a>（発行まで時間がかかるため早めに）</li>"
+      + "<li><strong>Jグランツにログインする</strong> — <a class='src-link' href='https://www.jgrants-portal.go.jp/' target='_blank' rel='noopener noreferrer'>Jグランツ（jGrants）↗</a></li>"
+      + "<li><strong>対象の公募を検索し、申請フォームに入力する</strong> — 本サービスで作成した下書き・チェックリストを手元に置いて転記します。</li>"
+      + "<li><strong>提出内容を確認して送信する</strong> — 提出後はマイページの「申請履歴」でステータス（受付済み／審査中／採択等）を確認できます。</li>"
+      + "<li><strong>採択後の手続き</strong> — 交付申請・事業実施・実績報告まで完了して初めて入金されます。</li>";
+  } else {
+    html += "<li><strong>管轄の労働局・ハローワークを確認する</strong> — 雇用系助成金の申請先は労働局・ハローワークです。</li>"
+      + "<li><strong>事前計画の届出</strong> — キャリアアップ計画書など、取組実施<strong>前</strong>の提出が必要な書類を先に出します。</li>"
+      + "<li><strong>取組の実施・書類の整備</strong> — 雇用契約書・賃金台帳・出勤簿を整えます。</li>"
+      + "<li><strong>支給申請</strong> — 申請期限（起算日から2か月以内など）に注意して提出します。窓口・郵送のほか、電子申請に対応する制度もあります。</li>";
+  }
+  html += "</ol></div>";
+  document.getElementById("jgrantsGuide").innerHTML = html;
+}
+
+/* ==================== お気に入り・ダッシュボード ==================== */
+function getFavorites() { return lsGet(LS.saved, []); }
+function toggleFavorite(key) {
+  var favs = getFavorites();
+  var pos = favs.indexOf(key);
+  if (pos === -1) favs.push(key); else favs.splice(pos, 1);
+  lsSet(LS.saved, favs);
+  var saved = favs.indexOf(key) !== -1;
+  var btn1 = document.getElementById("fav-" + key);
+  if (btn1) btn1.textContent = saved ? "★ 保存済み" : "☆ 保存";
+  var btn2 = document.getElementById("fav-detail-" + key);
+  if (btn2) btn2.textContent = saved ? "★ ダッシュボードに保存済み" : "☆ ダッシュボードに保存";
+}
+function daysUntil(iso) {
+  var today = new Date(); today.setHours(0, 0, 0, 0);
+  var d = new Date(iso + "T00:00:00");
+  return Math.round((d - today) / 86400000);
+}
+function renderDashboard() {
+  var favs = getFavorites();
+  var conflicts = checkConflicts(favs);
+  var dc = document.getElementById("dashConflicts");
+  if (conflicts.length > 0) {
+    var chtml = "<strong>保存中の制度に、併給に注意が必要な組み合わせがあります</strong><ul style='margin:0.4rem 0 0;padding-left:1.2rem;'>";
+    conflicts.forEach(function (c) {
+      chtml += "<li>「" + esc(PROGRAMS[c.a].name) + "」×「" + esc(PROGRAMS[c.b].name) + "」: " + esc(c.reason) + "</li>";
+    });
+    dc.innerHTML = '<div class="notice warn">' + chtml + "</ul></div>";
+  } else { dc.innerHTML = ""; }
+
+  var entries = favs.map(function (k) { return { key: k, p: PROGRAMS[k] }; }).filter(function (e) { return e.p; });
+  entries.sort(function (a, b) {
+    if (a.p.deadline === null && b.p.deadline === null) return 0;
+    if (a.p.deadline === null) return 1;
+    if (b.p.deadline === null) return -1;
+    return a.p.deadline < b.p.deadline ? -1 : 1;
+  });
+  var html = "";
+  entries.forEach(function (e) {
+    var badge;
+    if (e.p.deadline === null) {
+      badge = '<span class="badge badge-joseikin">通年受付</span>';
+    } else {
+      var days = daysUntil(e.p.deadline);
+      if (days < 0) badge = '<span class="badge badge-days">締切超過</span>';
+      else badge = '<span class="badge badge-days' + (days > 30 ? " far" : "") + '">残り ' + days + " 日</span>";
+    }
+    html += '<div class="card expert-card"><div>' + badge + typeBadge(e.p) + "<strong>" + esc(e.p.name) + "</strong>"
+      + '<div class="meta">' + esc(e.p.deadlineNote) + "</div></div>"
+      + '<div><button class="secondary" onclick="openProgram(\'' + e.key + '\')">準備を進める</button>'
+      + '<button class="ghost" onclick="toggleFavorite(\'' + e.key + '\');renderDashboard()">保存を解除</button></div></div>';
+  });
+  document.getElementById("dashList").innerHTML = html
+    || '<div class="card">保存された制度はまだありません。「制度をさがす」から候補を保存してください。</div>';
+
+  var requests = lsGet(LS.requests, []);
+  var rhtml = "";
+  if (requests.length > 0) {
+    rhtml = '<div class="card table-scroll"><table class="plain"><thead><tr><th>日付</th><th>相談先</th><th>制度</th><th>状態</th></tr></thead><tbody>';
+    requests.forEach(function (r) {
+      var pname = PROGRAMS[r.programKey] ? PROGRAMS[r.programKey].name : r.programKey;
+      rhtml += "<tr><td>" + esc(r.date) + "</td><td>" + esc(r.expertName) + "</td><td>" + esc(pname) + "</td><td>" + esc(r.status) + "</td></tr>";
+    });
+    rhtml += "</tbody></table></div>";
+  } else {
+    rhtml = '<div class="card">送信済みの相談はありません。</div>';
+  }
+  document.getElementById("dashRequests").innerHTML = rhtml;
+}
+
+/* ==================== 初期化 ==================== */
+document.addEventListener("DOMContentLoaded", function () {
+  renderDiagTags();
+  document.getElementById("footerDisclaimer").innerHTML = DISCLAIMERS.footer;
+  // 画面遷移で choose 画面に入る前に文言を用意するフック
+  var chooseBtn = document.querySelector('#screen-howto button.primary');
+  if (chooseBtn) chooseBtn.onclick = openChooseScreen;
+  var jgrantsBtnList = document.querySelectorAll('button[onclick="showScreen(\'screen-jgrants\')"]');
+  for (var i = 0; i < jgrantsBtnList.length; i++) {
+    jgrantsBtnList[i].addEventListener("click", renderJgrants);
+  }
+  var last = lsGet(LS.analysis, null);
+  if (last && last.matches) { state.company = last.company; state.matches = last.matches; }
+  showScreen("screen-home");
+});
+</script>
+</body>
+</html>
