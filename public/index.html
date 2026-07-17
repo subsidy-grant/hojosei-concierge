@@ -108,6 +108,7 @@
 
   .expert-card { display: flex; justify-content: space-between; gap: 1rem; align-items: center; flex-wrap: wrap; }
   .expert-card .meta { font-size: 0.85rem; color: var(--ink-soft); }
+  .dash-actions { flex: 1 0 100%; display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.25rem; }
 
   table.plain { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
   table.plain th, table.plain td { text-align: left; padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--line); }
@@ -178,7 +179,7 @@
 <nav class="appnav" id="appnav">
   <button data-screen="screen-home" onclick="showScreen('screen-home')">制度をさがす</button>
   <button data-screen="screen-dashboard" onclick="showScreen('screen-dashboard')">締切ダッシュボード</button>
-  <button data-screen="screen-history" onclick="showScreen('screen-history')">作成履歴</button>
+  <button data-screen="screen-history" onclick="showScreen('screen-history')">検索履歴</button>
   <button data-screen="screen-expert-side" onclick="showScreen('screen-expert-side')">専門家向け画面（デモ）</button>
 </nav>
 
@@ -371,10 +372,10 @@
   <div id="dashRequests"></div>
 </section>
 
-<!-- 作成履歴 -->
+<!-- 検索履歴 -->
 <section class="screen" id="screen-history">
-  <h2>作成履歴</h2>
-  <p class="sub">AIが作成した下書き・記入内容の履歴です。会社ごとに最大100件まで、この端末に保存されます。</p>
+  <h2>検索履歴</h2>
+  <p class="sub">「AIで活用できる制度をさがす」で検索した履歴です。会社ごとに最大100件まで、この端末に保存されます。</p>
   <div id="historyList"></div>
 </section>
 
@@ -1031,12 +1032,14 @@ function currentCompanyKey() {
   if (urlEl && urlEl.value.trim()) return urlEl.value.trim();
   return "会社名未設定";
 }
-function addHistoryEntry(type, programKey, docLabel, content) {
+function addSearchHistoryEntry(url, company, matchCount) {
   var hist = lsGet(LS.history, {});
   var key = currentCompanyKey();
   if (!hist[key]) hist[key] = [];
   hist[key].unshift({
-    type: type, programKey: programKey, docLabel: docLabel, content: content,
+    type: "search", url: url,
+    industry: company && company.industry ? company.industry : null,
+    matchCount: matchCount,
     createdAt: new Date().toLocaleString("ja-JP")
   });
   if (hist[key].length > HISTORY_LIMIT_PER_COMPANY) hist[key] = hist[key].slice(0, HISTORY_LIMIT_PER_COMPANY);
@@ -1134,6 +1137,7 @@ function analyzeCompany() {
     state.company = data.company || null;
     state.matches = data.matches || [];
     lsSet(LS.analysis, { company: state.company, matches: state.matches });
+    addSearchHistoryEntry(url, state.company, state.matches.length);
     renderResults("AIによる解析結果");
     showScreen("screen-results");
   }).catch(function (err) {
@@ -1396,7 +1400,6 @@ function generateDraft() {
     status.textContent = "";
     return consumeTextStream(res, document.getElementById("draftResult"), document.getElementById("draftResultWrap"), function (text) {
       btn.disabled = false;
-      if (text) addHistoryEntry("draft", state.programKey, draftDocLabel, text);
     });
   }).catch(function (err) {
     btn.disabled = false;
@@ -1454,7 +1457,6 @@ function generateFormFill() {
     status.textContent = "";
     return consumeTextStream(res, document.getElementById("formFillResult"), document.getElementById("formFillResultWrap"), function (text) {
       btn.disabled = false;
-      if (text) addHistoryEntry("formFill", currentFormFill.progKey, currentFormFill.doc.label, text);
     });
   }).catch(function (err) {
     btn.disabled = false;
@@ -1589,7 +1591,7 @@ function renderDashboard() {
   var filterEl = document.getElementById("dashCompanyFilter");
   if (state.dashboardCompanyKey) {
     filterEl.innerHTML = '<div class="notice">表示中の会社: <strong>' + esc(state.dashboardCompanyKey) + "</strong>　"
-      + '<button type="button" class="ghost small-btn" onclick="state.dashboardCompanyKey=null;renderDashboard();">すべての会社を表示</button></div>';
+      + '<button type="button" class="ghost small-btn" onclick="state.dashboardCompanyKey=null;renderDashboard();">すべての制度を表示</button></div>';
   } else {
     filterEl.innerHTML = "";
   }
@@ -1630,7 +1632,7 @@ function renderDashboard() {
       + '<span class="bar"><span class="bar-fill" style="width:' + applyPct + '%"></span></span>　'
       + "支給申請: " + ps.paymentDone + "/" + ps.paymentTotal
       + '<span class="bar"><span class="bar-fill" style="width:' + paymentPct + '%"></span></span></div></div>'
-      + '<div><button class="secondary" onclick="openProgram(\'' + e.key + '\')">準備を進める</button>'
+      + '<div class="dash-actions"><button class="secondary" onclick="openProgram(\'' + e.key + '\')">準備を進める</button>'
       + '<button class="ghost" onclick="toggleFavorite(\'' + e.key + '\');renderDashboard()">保存を解除</button></div></div>';
   });
   document.getElementById("dashList").innerHTML = html
@@ -1656,29 +1658,28 @@ function renderDashboard() {
   document.getElementById("dashRequests").innerHTML = rhtml;
 }
 
-/* ==================== 作成履歴 ==================== */
+/* ==================== 検索履歴 ==================== */
 var historyKeysCache = [];
 function renderHistory() {
   var hist = lsGet(LS.history, {});
   historyKeysCache = Object.keys(hist);
   if (historyKeysCache.length === 0) {
-    document.getElementById("historyList").innerHTML = '<div class="card">まだ履歴がありません。AIで下書き・記入内容を作成すると、ここに会社ごとに保存されます。</div>';
+    document.getElementById("historyList").innerHTML = '<div class="card">まだ検索履歴がありません。「制度をさがす」でAI検索を行うと、ここに会社ごとに保存されます。</div>';
     return;
   }
   var html = "";
   historyKeysCache.forEach(function (companyKey, ki) {
     var entries = hist[companyKey] || [];
     html += '<details class="prog-card"' + (ki === 0 ? " open" : "") + '><summary><span class="chevron">▶</span>'
-      + esc(companyKey) + "（" + entries.length + "件）"
+      + esc(companyKey) + "（検索 " + entries.length + " 回）"
       + '<button type="button" class="ghost small-btn" style="margin-left:0.6rem;" onclick="event.preventDefault();openDashboardForCompany(' + ki + ')">この会社のダッシュボードを見る</button>'
       + "</summary><div class=\"prog-body\">";
     entries.forEach(function (e, idx) {
-      var pname = PROGRAMS[e.programKey] ? PROGRAMS[e.programKey].name : e.programKey;
       html += '<div class="card" style="margin:0.6rem 0;">'
-        + '<div style="font-size:0.82rem;color:var(--ink-soft);">' + esc(e.createdAt) + " ／ " + esc(pname) + "</div>"
-        + '<div style="font-weight:700;margin:0.2rem 0 0.5rem;">' + esc(e.docLabel) + "（" + (e.type === "draft" ? "下書き" : "記入内容") + "）</div>"
-        + '<textarea readonly style="min-height:120px;width:100%;font-size:0.85rem;">' + esc(e.content) + "</textarea>"
-        + '<button type="button" class="ghost small-btn" onclick="copyHistoryEntry(' + ki + ", " + idx + ')">コピー</button>'
+        + '<div style="font-size:0.82rem;color:var(--ink-soft);">' + esc(e.createdAt) + "</div>"
+        + '<div style="font-weight:700;margin:0.2rem 0 0.3rem;">' + esc(e.url) + "</div>"
+        + '<div style="font-size:0.88rem;">' + e.matchCount + " 件の制度がヒット"
+        + (e.industry ? "（推定業種: " + esc(e.industry) + "）" : "") + "</div>"
         + '<button type="button" class="ghost small-btn" onclick="deleteHistoryEntry(' + ki + ", " + idx + ');renderHistory()">削除</button>'
         + "</div>";
     });
@@ -1691,13 +1692,6 @@ function openDashboardForCompany(ki) {
   if (!companyKey) return;
   state.dashboardCompanyKey = companyKey;
   showScreen("screen-dashboard");
-}
-function copyHistoryEntry(ki, idx) {
-  var hist = lsGet(LS.history, {});
-  var companyKey = historyKeysCache[ki];
-  var entry = companyKey && hist[companyKey] ? hist[companyKey][idx] : null;
-  if (!entry) return;
-  navigator.clipboard.writeText(entry.content).then(function () { alert("コピーしました。"); });
 }
 function deleteHistoryEntry(ki, idx) {
   var hist = lsGet(LS.history, {});
