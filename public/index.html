@@ -158,6 +158,9 @@
   .stepper .step.current .dot { background: var(--accent); border-color: var(--accent); color: var(--paper-raised); }
   .stepper .step-label { font-size: 0.68rem; color: var(--ink-soft); line-height: 1.3; }
   .stepper-desc { font-size: 0.85rem; color: var(--ink-soft); background: var(--sage-wash); border-radius: 8px; padding: 0.6rem 0.9rem; margin: 0.5rem 0 1rem; }
+  .doc-target-banner { font-size: 1.15rem; font-weight: 800; color: var(--ink); background: var(--accent-wash);
+    border: 1px solid var(--accent); border-radius: 8px; padding: 0.7rem 1rem; margin: 0.5rem 0 0.8rem; line-height: 1.5; }
+  .doc-target-banner .program-name { display: block; font-size: 0.8rem; font-weight: 700; color: var(--ink-soft); margin-top: 0.2rem; }
   .progress-mini { font-size: 0.82rem; color: var(--ink-soft); }
   .progress-mini .bar { display: inline-block; width: 6rem; height: 0.5rem; background: var(--line); border-radius: 999px; overflow: hidden; vertical-align: middle; margin: 0 0.4rem; }
   .progress-mini .bar-fill { display: block; height: 100%; background: var(--accent); }
@@ -175,6 +178,7 @@
 <nav class="appnav" id="appnav">
   <button data-screen="screen-home" onclick="showScreen('screen-home')">制度をさがす</button>
   <button data-screen="screen-dashboard" onclick="showScreen('screen-dashboard')">締切ダッシュボード</button>
+  <button data-screen="screen-history" onclick="showScreen('screen-history')">作成履歴</button>
   <button data-screen="screen-expert-side" onclick="showScreen('screen-expert-side')">専門家向け画面（デモ）</button>
 </nav>
 
@@ -256,7 +260,7 @@
 <!-- 5. AI下書き -->
 <section class="screen" id="screen-draft">
   <h2>AIによる書類下書き（自己作成支援）</h2>
-  <p class="sub" id="draftProgName"></p>
+  <div class="doc-target-banner" id="draftTargetBanner"></div>
   <div class="notice legal" id="draftLegalNotice"></div>
   <div class="card">
     <label class="field">事業内容（業種を選択）</label>
@@ -285,7 +289,7 @@
 <!-- 5b. AIで様式の記入内容を作成 -->
 <section class="screen" id="screen-form-fill">
   <h2>AIで様式の記入内容を作成（自己作成支援）</h2>
-  <p class="sub" id="formFillName"></p>
+  <div class="doc-target-banner" id="formFillName"></div>
   <div class="notice legal" id="formFillLegalNotice"></div>
   <div class="card">
     <label class="field" for="formFillNote">補足（任意）</label>
@@ -364,6 +368,13 @@
   <div id="dashList"></div>
   <h3>送信済みの相談（デモ）</h3>
   <div id="dashRequests"></div>
+</section>
+
+<!-- 作成履歴 -->
+<section class="screen" id="screen-history">
+  <h2>作成履歴</h2>
+  <p class="sub">AIが作成した下書き・記入内容の履歴です。会社ごとに最大100件まで、この端末に保存されます。</p>
+  <div id="historyList"></div>
 </section>
 
 <!-- 専門家側モック -->
@@ -987,8 +998,27 @@ var LS = {
   saved: "concierge_savedPrograms",
   checklist: "concierge_checklist_",
   requests: "concierge_requests",
-  analysis: "concierge_lastAnalysis"
+  analysis: "concierge_lastAnalysis",
+  history: "concierge_history"
 };
+var HISTORY_LIMIT_PER_COMPANY = 100;
+function currentCompanyKey() {
+  if (state.company && state.company.companyName && state.company.companyName !== "不明") return state.company.companyName;
+  var urlEl = document.getElementById("companyUrl");
+  if (urlEl && urlEl.value.trim()) return urlEl.value.trim();
+  return "会社名未設定";
+}
+function addHistoryEntry(type, programKey, docLabel, content) {
+  var hist = lsGet(LS.history, {});
+  var key = currentCompanyKey();
+  if (!hist[key]) hist[key] = [];
+  hist[key].unshift({
+    type: type, programKey: programKey, docLabel: docLabel, content: content,
+    createdAt: new Date().toLocaleString("ja-JP")
+  });
+  if (hist[key].length > HISTORY_LIMIT_PER_COMPANY) hist[key] = hist[key].slice(0, HISTORY_LIMIT_PER_COMPANY);
+  lsSet(LS.history, hist);
+}
 function lsGet(key, fallback) {
   try { var raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch (e) { return fallback; }
 }
@@ -1021,6 +1051,7 @@ function showScreen(id) {
   }
   if (id === "screen-dashboard") renderDashboard();
   if (id === "screen-jgrants") renderJgrants();
+  if (id === "screen-history") renderHistory();
   window.scrollTo({ top: 0 });
 }
 
@@ -1203,7 +1234,7 @@ function renderChecklist(progKey) {
       html += '<a class="src-link" style="font-size:0.78rem;" href="' + esc(d.officialUrl) + '" target="_blank" rel="noopener noreferrer">公式様式を見る ↗</a>';
     }
     if (d.kind === "businessPlan") {
-      html += '<button type="button" class="ghost small-btn" onclick="openDraftScreen()">AIで下書きを作成</button>';
+      html += '<button type="button" class="ghost small-btn" onclick="openDraftScreen(' + i + ')">AIで下書きを作成</button>';
     } else if (d.kind === "form") {
       html += '<button type="button" class="ghost small-btn" onclick="openFormFillScreen(\'' + progKey + "', " + i + ')">AIで記入内容を作成</button>';
     }
@@ -1281,9 +1312,15 @@ function renderDraftSelectors() {
   });
   renderDialMulti("draftIntentSelect");
 }
-function openDraftScreen() {
+var draftDocLabel = "事業計画書";
+function openDraftScreen(docIndex) {
   var p = PROGRAMS[state.programKey];
-  document.getElementById("draftProgName").textContent = "対象制度: " + p.name;
+  var docs = PROGRAM_REQUIRED_DOCS[state.programKey] || [];
+  var doc = docIndex != null ? docs[docIndex] : null;
+  if (!doc) { for (var i = 0; i < docs.length; i++) if (docs[i].kind === "businessPlan") { doc = docs[i]; break; } }
+  draftDocLabel = doc ? doc.label : "事業計画書";
+  document.getElementById("draftTargetBanner").innerHTML = "作成する書類: " + esc(draftDocLabel)
+    + '<span class="program-name">対象制度: ' + esc(p.name) + "</span>";
   document.getElementById("draftLegalNotice").innerHTML = DISCLAIMERS.selfDraft;
   document.getElementById("draftResultWrap").style.display = "none";
   renderDraftSelectors();
@@ -1313,6 +1350,7 @@ function generateDraft() {
     status.textContent = "";
     document.getElementById("draftResult").value = data.draft || "";
     document.getElementById("draftResultWrap").style.display = "block";
+    if (data.draft) addHistoryEntry("draft", state.programKey, draftDocLabel, data.draft);
   }).catch(function (err) {
     btn.disabled = false;
     status.textContent = "生成に失敗しました（" + err.message + "）。時間をおいて再度お試しください。";
@@ -1339,7 +1377,8 @@ function openFormFillScreen(progKey, docIndex) {
   var doc = (PROGRAM_REQUIRED_DOCS[progKey] || [])[docIndex];
   if (!doc) return;
   currentFormFill = { progKey: progKey, doc: doc };
-  document.getElementById("formFillName").textContent = "対象様式: " + doc.label + "（" + PROGRAMS[progKey].name + "）";
+  document.getElementById("formFillName").innerHTML = "作成する書類: " + esc(doc.label)
+    + '<span class="program-name">対象制度: ' + esc(PROGRAMS[progKey].name) + "</span>";
   document.getElementById("formFillLegalNotice").innerHTML = DISCLAIMERS.formFill;
   document.getElementById("formFillNote").value = "";
   document.getElementById("formFillResultWrap").style.display = "none";
@@ -1371,6 +1410,7 @@ function generateFormFill() {
     status.textContent = "";
     document.getElementById("formFillResult").value = data.fill || "";
     document.getElementById("formFillResultWrap").style.display = "block";
+    if (data.fill) addHistoryEntry("formFill", currentFormFill.progKey, currentFormFill.doc.label, data.fill);
   }).catch(function (err) {
     btn.disabled = false;
     status.textContent = "生成に失敗しました（" + err.message + "）。時間をおいて再度お試しください。";
@@ -1540,6 +1580,50 @@ function renderDashboard() {
     rhtml = '<div class="card">送信済みの相談はありません。</div>';
   }
   document.getElementById("dashRequests").innerHTML = rhtml;
+}
+
+/* ==================== 作成履歴 ==================== */
+var historyKeysCache = [];
+function renderHistory() {
+  var hist = lsGet(LS.history, {});
+  historyKeysCache = Object.keys(hist);
+  if (historyKeysCache.length === 0) {
+    document.getElementById("historyList").innerHTML = '<div class="card">まだ履歴がありません。AIで下書き・記入内容を作成すると、ここに会社ごとに保存されます。</div>';
+    return;
+  }
+  var html = "";
+  historyKeysCache.forEach(function (companyKey, ki) {
+    var entries = hist[companyKey] || [];
+    html += '<details class="prog-card"' + (ki === 0 ? " open" : "") + '><summary><span class="chevron">▶</span>'
+      + esc(companyKey) + "（" + entries.length + "件）</summary><div class=\"prog-body\">";
+    entries.forEach(function (e, idx) {
+      var pname = PROGRAMS[e.programKey] ? PROGRAMS[e.programKey].name : e.programKey;
+      html += '<div class="card" style="margin:0.6rem 0;">'
+        + '<div style="font-size:0.82rem;color:var(--ink-soft);">' + esc(e.createdAt) + " ／ " + esc(pname) + "</div>"
+        + '<div style="font-weight:700;margin:0.2rem 0 0.5rem;">' + esc(e.docLabel) + "（" + (e.type === "draft" ? "下書き" : "記入内容") + "）</div>"
+        + '<textarea readonly style="min-height:120px;width:100%;font-size:0.85rem;">' + esc(e.content) + "</textarea>"
+        + '<button type="button" class="ghost small-btn" onclick="copyHistoryEntry(' + ki + ", " + idx + ')">コピー</button>'
+        + '<button type="button" class="ghost small-btn" onclick="deleteHistoryEntry(' + ki + ", " + idx + ');renderHistory()">削除</button>'
+        + "</div>";
+    });
+    html += "</div></details>";
+  });
+  document.getElementById("historyList").innerHTML = html;
+}
+function copyHistoryEntry(ki, idx) {
+  var hist = lsGet(LS.history, {});
+  var companyKey = historyKeysCache[ki];
+  var entry = companyKey && hist[companyKey] ? hist[companyKey][idx] : null;
+  if (!entry) return;
+  navigator.clipboard.writeText(entry.content).then(function () { alert("コピーしました。"); });
+}
+function deleteHistoryEntry(ki, idx) {
+  var hist = lsGet(LS.history, {});
+  var companyKey = historyKeysCache[ki];
+  if (!companyKey || !hist[companyKey]) return;
+  hist[companyKey].splice(idx, 1);
+  if (hist[companyKey].length === 0) delete hist[companyKey];
+  lsSet(LS.history, hist);
 }
 
 /* ==================== 初期化 ==================== */
