@@ -190,7 +190,6 @@ export async function handleAnalyzeCompany(request, env) {
     body: JSON.stringify({
       model: "claude-sonnet-5",
       max_tokens: 8000,
-      temperature: 0,
       output_config: {
         effort: "medium",
         format: { type: "json_schema", schema: RESPONSE_SCHEMA },
@@ -223,8 +222,7 @@ export async function handleAnalyzeCompany(request, env) {
   if (!anthropicRes.ok) {
     const status = anthropicRes.status;
     const msg = status === 429 ? "アクセスが集中しています。しばらくしてからお試しください" : "AI解析に失敗しました";
-    const bodyText = await anthropicRes.text().catch(() => "");
-    return jsonResponse({ error: msg, debugStatus: status, debugBody: bodyText.slice(0, 800) }, 502);
+    return jsonResponse({ error: msg }, 502);
   }
 
   const result = await anthropicRes.json();
