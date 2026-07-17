@@ -223,7 +223,8 @@ export async function handleAnalyzeCompany(request, env) {
   if (!anthropicRes.ok) {
     const status = anthropicRes.status;
     const msg = status === 429 ? "アクセスが集中しています。しばらくしてからお試しください" : "AI解析に失敗しました";
-    return jsonResponse({ error: msg }, 502);
+    const bodyText = await anthropicRes.text().catch(() => "");
+    return jsonResponse({ error: msg, debugStatus: status, debugBody: bodyText.slice(0, 800) }, 502);
   }
 
   const result = await anthropicRes.json();
