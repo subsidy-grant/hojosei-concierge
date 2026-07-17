@@ -4,11 +4,13 @@
 
 ## 構成
 
-- `index.html` — フロントエンド全体(単一ファイルSPA、ビルド不要)
-- `functions/api/analyze-company.js` — 会社HP解析→制度マッチング(Claude API)
-- `functions/api/draft.js` — 申請書類たたき台の生成(Claude API)
+- `public/index.html` — フロントエンド全体(単一ファイルSPA、ビルド不要)
+- `src/index.js` — Worker本体。`/api/*` をルーティングし、それ以外は静的アセット(`public/`)を配信
+- `src/analyze-company.js` — 会社HP解析→制度マッチング(Claude API)
+- `src/draft.js` — 申請書類たたき台の生成(Claude API)
+- `wrangler.jsonc` — Cloudflare Workers(静的アセット付き)の設定
 
-ホスティングは Cloudflare Pages + Pages Functions。npm 依存なし・ビルドステップなし。
+ホスティングは Cloudflare Workers(Static Assets)。npm 依存の実行時コードはなし・ビルドステップなし(`wrangler` はデプロイ時のみ使用)。
 
 ## ローカル起動
 
@@ -16,15 +18,15 @@
 # リポジトリ直下に .dev.vars を作成(gitignore済み)
 echo "ANTHROPIC_API_KEY=sk-ant-..." > .dev.vars
 
-npx wrangler pages dev .
+npx wrangler dev
 ```
 
-http://localhost:8788 で起動します。APIキーがない場合も画面遷移・チェックリスト・ダッシュボード等のAI以外の機能は動作します。
+http://localhost:8787 で起動します。APIキーがない場合も画面遷移・チェックリスト・ダッシュボード等のAI以外の機能は動作します。
 
 ## デプロイ
 
-1. GitHub リポジトリを Cloudflare Pages に接続(ビルドコマンドなし、出力ディレクトリ `/`)
-2. Pages の設定 → 環境変数に `ANTHROPIC_API_KEY` を追加
+1. GitHub リポジトリを Cloudflare(Workers & Pages → Connect GitHub)に接続。ビルドコマンドは指定不要(`wrangler.jsonc` があるため `npx wrangler deploy` がそのまま動く)
+2. プロジェクトの Settings → Variables and secrets に `ANTHROPIC_API_KEY` を追加(Secret として暗号化推奨)
 3. `main` に push すると自動デプロイ
 
 ## 法的な設計方針(重要)

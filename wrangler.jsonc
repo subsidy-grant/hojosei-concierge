@@ -1,5 +1,10 @@
 {
   "name": "hojosei-concierge",
   "compatibility_date": "2026-07-17",
-  "pages_build_output_dir": "."
+  "main": "src/index.js",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  }
 }

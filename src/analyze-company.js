@@ -1,9 +1,9 @@
 // POST /api/analyze-company
 // 会社HPのURL(と任意の補足テキスト)から事業プロフィールを推定し、
 // 掲載制度(PROGRAM_SUMMARIES)とのマッチングをClaudeで行う。
-// APIキーは Cloudflare Pages の環境変数 ANTHROPIC_API_KEY(リポジトリには置かない)。
+// APIキーは Cloudflare の環境変数 ANTHROPIC_API_KEY(リポジトリには置かない)。
 
-// index.html の PROGRAMS と対応するキーの要約。制度を追加/削除したら両方更新すること。
+// public/index.html の PROGRAMS と対応するキーの要約。制度を追加/削除したら両方更新すること。
 const PROGRAM_SUMMARIES = [
   { key: "ai", name: "デジタル化・AI導入補助金2026(旧IT導入補助金)", type: "補助金", summary: "中小企業のソフトウェア・クラウド導入費を補助。予約/顧客管理/会計等のITツール導入向け。" },
   { key: "jizoku", name: "小規模事業者持続化補助金", type: "補助金", summary: "従業員5〜20人以下の小規模事業者の販路開拓(広報費・Web関連費・機械装置等)を補助。個人事業主も対象。" },
@@ -104,13 +104,13 @@ async function fetchCompanyText(url) {
   }
 }
 
-export async function onRequestPost(context) {
-  const apiKey = context.env.ANTHROPIC_API_KEY;
+export async function handleAnalyzeCompany(request, env) {
+  const apiKey = env.ANTHROPIC_API_KEY;
   if (!apiKey) return jsonResponse({ error: "サーバー設定エラー(APIキー未設定)" }, 500);
 
   let body;
   try {
-    body = await context.request.json();
+    body = await request.json();
   } catch {
     return jsonResponse({ error: "リクエスト形式が不正です" }, 400);
   }

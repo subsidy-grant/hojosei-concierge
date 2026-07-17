@@ -3,7 +3,7 @@
 // 行政書士法・社労士法対応: 本サービスは書類を「作成・提出代行」しない。
 // 出力は必ず自己作成支援の参考文書であり、フロント側で編集可能なtextareaに表示し免責を常時併記する。
 
-// index.html の PROGRAMS と対応。制度を追加/削除したら両方更新すること。
+// public/index.html の PROGRAMS と対応。制度を追加/削除したら両方更新すること。
 const PROGRAM_INFO = {
   ai: { name: "デジタル化・AI導入補助金2026(旧IT導入補助金)", type: "hojokin", docLabel: "事業計画(ITツール導入計画)のたたき台" },
   jizoku: { name: "小規模事業者持続化補助金", type: "hojokin", docLabel: "経営計画書・補助事業計画書のたたき台" },
@@ -24,13 +24,13 @@ function jsonResponse(body, status = 200) {
   });
 }
 
-export async function onRequestPost(context) {
-  const apiKey = context.env.ANTHROPIC_API_KEY;
+export async function handleDraft(request, env) {
+  const apiKey = env.ANTHROPIC_API_KEY;
   if (!apiKey) return jsonResponse({ error: "サーバー設定エラー(APIキー未設定)" }, 500);
 
   let body;
   try {
-    body = await context.request.json();
+    body = await request.json();
   } catch {
     return jsonResponse({ error: "リクエスト形式が不正です" }, 400);
   }
