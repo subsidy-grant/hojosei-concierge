@@ -27,14 +27,15 @@
 
 ## スキルについて
 
-`.claude/skills/` に8つのループスキルがある。明示的な呼び出しがなくても、説明文の発動条件に合致したら使うこと：
-- **devflow** — 開発フロー一気通貫（redteam→slice→expert-review→propagation→firstuser→handoff）。「新機能を作って」等のまとまった開発依頼はこれ経由を基本とする
+`.claude/skills/` に9つのループスキルがある。明示的な呼び出しがなくても、説明文の発動条件に合致したら使うこと：
+- **devflow** — 開発フロー一気通貫（redteam→slice→expert-review→propagation→uidesign→firstuser→handoff）。「新機能を作って」等のまとまった開発依頼はこれ経由を基本とする
 - **slice** — 本番システムへの機能追加は必ずこれ経由（証拠確認→最小変更→検証→停止）
 - **expert-review** — 3専門家（基本品質/アーキテクチャ/ドメイン）の並列品質レビュー。まとまった実装の後に
 - **propagation** — 複数ファイルに現れる値を変更したら締めに実行
+- **uidesign** — 実ブラウザで画面を統一チェックリスト採点→最弱点改善の反復。見た目の質を上げるとき
 - **handoff** — セッション終了時の引き継ぎ作成
 - **groundtruth** — 証拠ベースの読み取り専用監査
 - **redteam** — 設計確定前の批判レビュー
 - **firstuser** — リリース前のクリーンセッション初見検証
 
-開発の流れ：redteam（設計前）→ slice（実装）→ expert-review（品質）→ firstuser（リリース前）→ groundtruth/propagation/handoff（運用）
+開発の流れ：redteam（設計前）→ slice（実装）→ expert-review（品質）→ uidesign（見た目）→ firstuser（リリース前）→ groundtruth/propagation/handoff（運用）
