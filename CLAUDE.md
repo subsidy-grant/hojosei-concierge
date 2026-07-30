@@ -27,16 +27,15 @@
 
 ## スキルについて
 
-`.claude/skills/` に10のループスキルがある。明示的な呼び出しがなくても、説明文の発動条件に合致したら使うこと：
-- **devflow** — 開発フロー一気通貫（redteam→artdirection→slice→expert-review→propagation→uidesign→firstuser→handoff）。「新機能を作って」等のまとまった開発依頼はこれ経由を基本とする
+`.claude/skills/` に9つのループスキルがある。明示的な呼び出しがなくても、説明文の発動条件に合致したら使うこと：
+- **devflow** — 開発フロー一気通貫（redteam→artdirection→slice→expert-review→propagation→uicheck→handoff）。「新機能を作って」等のまとまった開発依頼はこれ経由を基本とする
 - **artdirection** — AIっぽい量産デザインの回避。新規UI・見た目刷新の前に美学方向とトークンを確定。UIを新規に作るときは自発的に使う
 - **slice** — 本番システムへの機能追加は必ずこれ経由（証拠確認→最小変更→検証→停止）
 - **expert-review** — 3専門家（基本品質/アーキテクチャ/ドメイン）の並列品質レビュー。まとまった実装の後に
 - **propagation** — 複数ファイルに現れる値を変更したら締めに実行
-- **uidesign** — 実ブラウザで画面を統一チェックリスト採点→最弱点改善の反復。見た目の質を上げるとき
+- **uicheck** — クリーンな実ブラウザで初見完走の確認＋画面採点を1周で行い、障害→最弱点の順に改善（旧uidesign+firstuserの統合）
 - **handoff** — セッション終了時の引き継ぎ作成
 - **groundtruth** — 証拠ベースの読み取り専用監査
 - **redteam** — 設計確定前の批判レビュー
-- **firstuser** — リリース前のクリーンセッション初見検証
 
-開発の流れ：redteam（設計前）→ artdirection（見た目の方向）→ slice（実装）→ expert-review（品質）→ uidesign（見た目の採点）→ firstuser（リリース前）→ groundtruth/propagation/handoff（運用）
+開発の流れ：redteam（設計前）→ artdirection（見た目の方向）→ slice（実装）→ expert-review（品質）→ uicheck（リリース前）→ groundtruth/propagation/handoff（運用）
