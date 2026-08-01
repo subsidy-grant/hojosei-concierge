@@ -28,9 +28,14 @@
 ## スキルについて
 
 `.claude/skills/` に18のスキルがある。明示的な呼び出しがなくても、説明文の発動条件に合致したら使うこと：
-- **webapp-testing** — Playwrightでローカルwebアプリを実ブラウザ検証（Anthropic公式、Apache 2.0）。uicheck/error-rewriteの実行基盤
+- **webapp-testing** — Playwrightでローカルwebアプリを実ブラウザ検証（Anthropic公式、Apache 2.0）
 - **mcp-builder** — MCPサーバー自作ガイド（Anthropic公式、Apache 2.0）
 - **theme-factory** — スライド・HTML成果物への統一テーマ適用、10種プリセット（Anthropic公式、Apache 2.0）
+
+### スキルの競合仲裁（どちらが発動するか迷ったらこれに従う）
+
+- **webapp-testing vs uicheck/error-rewrite**：webapp-testingは「道具箱」（単発のブラウザ操作・スクショ・ログ確認・デバッグ）。**完走確認や採点など反復改善のループはuicheck/error-rewriteが主で、その実行手段としてwebapp-testingの道具を使う**。「テストして」だけなら文脈で判断し、迷ったらuicheck
+- **theme-factory vs artdirection**：**他人の目に触れる公開物（サイト・クライアント提案・ブランド物）はartdirection優先**（プリセットテーマ=テンプレ適用はAIっぽさ回避と正面衝突するため）。theme-factoryは内部資料・速度優先の使い捨て資料のみ。両方使う場合はartdirectionで方向を決めてからtheme-factoryのカスタムテーマ生成を道具として使う
 - **feedback-sweep** — 本人の修正指摘を失敗パターン化し、同じ型の問題をプロジェクト全体から掃討。大きな誤りを直した直後に使う
 - **error-rewrite** — ユーザーに見えるエラー文言を全数棚卸しし、非IT利用者が次の行動の分かる日本語に書き直して実機検証
 - **gijiroku** — 音声（会議録音）→文字起こし→議事録要約→リネーム保存→タスク登録の一括処理
