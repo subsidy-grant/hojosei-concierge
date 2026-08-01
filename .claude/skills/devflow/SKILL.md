@@ -1,6 +1,6 @@
 ---
 name: devflow
-description: 開発フロー一気通貫コマンド。redteam(設計批判)→artdirection(デザイン方向)→slice(証拠ファースト実装)→expert-review(3専門家並列レビュー)→propagation(値の伝播確認)→uicheck(初見完走+UI採点)→handoff(引き継ぎ)を1回の指示で順に実行する統括スキル。「devflow」「一気通貫で」「フルコースで作って」「フロー全部通して」で発動。新機能開発やまとまった改修に。
+description: 開発フロー一気通貫コマンド。redteam(設計批判)→hallmark+artdirection(デザイン方向)→slice(証拠ファースト実装)→expert-review(3専門家並列レビュー)→propagation(値の伝播確認)→uicheck(初見完走+UI採点)→handoff(引き継ぎ)を1回の指示で順に実行する統括スキル。「devflow」「一気通貫で」「フルコースで作って」「フロー全部通して」で発動。新機能開発やまとまった改修に。
 ---
 
 # Devflow 開発フロー統括
