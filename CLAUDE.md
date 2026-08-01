@@ -36,7 +36,8 @@
 ### スキルの競合仲裁（どちらが発動するか迷ったらこれに従う）
 
 - **webapp-testing vs uicheck/error-rewrite**：webapp-testingは「道具箱」（単発のブラウザ操作・スクショ・ログ確認・デバッグ）。**完走確認や採点など反復改善のループはuicheck/error-rewriteが主で、その実行手段としてwebapp-testingの道具を使う**。「テストして」だけなら文脈で判断し、迷ったらuicheck
-- **デザインのテンプレ適用は禁止**：見た目に関わる成果物は artdirection の方向決めを経由する。プリセットテーマの当てはめで済ませない（2026-08-02、theme-factoryはこの理由で撤去済み）
+- **hallmark vs artdirection**：競合しない。**hallmarkが本体、artdirectionは日本語の上書き**。日本語画面では両方適用し、書体・字組み・可読性の判断はartdirectionが優先する
+- **デザインのテンプレ適用は禁止**：見た目に関わる成果物は hallmark の構造・テーマ選定を経由する。プリセットの当てはめで済ませない（2026-08-02、theme-factoryはこの理由で撤去済み）
 - **feedback-sweep** — 本人の修正指摘を失敗パターン化し、同じ型の問題をプロジェクト全体から掃討。大きな誤りを直した直後に使う
 - **error-rewrite** — ユーザーに見えるエラー文言を全数棚卸しし、非IT利用者が次の行動の分かる日本語に書き直して実機検証
 - **gijiroku** — 音声（会議録音）→文字起こし→議事録要約→リネーム保存→タスク登録の一括処理
@@ -44,7 +45,8 @@
 - **zeirishi** — 税理士の知識体系（税務・会計・補助金の税務処理）。税率・要件は暗記せず国税庁等の一次情報で確認。個別の税額計算・申告判断はしない（無償独占の業際）。監修レビューは `.claude/agents/zeirishi.md` で並列実行可。外注費vs給与の論点はsharoushiと両輪で使う
 - **shindanshi** — 中小企業診断士の知識体系（補助金=経産省系・競争採択、事業計画評価、行政の仕組みと文化）。金額・要件・締切は当該公募回の公募要領で確認。補助金/助成金の混同チェックが監修の最重要点。監修レビューは `.claude/agents/shindanshi.md` で並列実行可。補助金記事は sharoushi/zeirishi/shindanshi の3監修並列が基本形
 - **devflow** — 開発フロー一気通貫（redteam→artdirection→slice→expert-review→propagation→uicheck→handoff）。「新機能を作って」等のまとまった開発依頼はこれ経由を基本とする
-- **artdirection** — AIっぽい量産デザインの回避。新規UI・見た目刷新の前に美学方向とトークンを確定。UIを新規に作るときは自発的に使う
+- **hallmark** — AIっぽさ回避デザインの本体（21マクロストラクチャ／20テーマ／58スロップテストゲート、audit・redesign・study の動詞付き。MIT、Nutlope/hallmark）。新規UI構築・リデザイン・既存デザインの採点で使う
+- **artdirection** — **hallmarkの日本語アダプタ**。日本語の画面をhallmarkで扱うときは必ず併用し、書体（BIZ UDGothic等の明示指定）・字組み（line-height 1.7〜1.9、全角35〜45文字）・日本語コピー・非IT利用者向け可読性優先の上書きを適用する。単独では使わない
 - **slice** — 本番システムへの機能追加は必ずこれ経由（証拠確認→最小変更→検証→停止）
 - **expert-review** — 3専門家（基本品質/アーキテクチャ/ドメイン）の並列品質レビュー。まとまった実装の後に
 - **propagation** — 複数ファイルに現れる値を変更したら締めに実行
