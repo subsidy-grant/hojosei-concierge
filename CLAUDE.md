@@ -27,7 +27,10 @@
 
 ## スキルについて
 
-`.claude/skills/` に15のスキルがある。明示的な呼び出しがなくても、説明文の発動条件に合致したら使うこと：
+`.claude/skills/` に18のスキルがある。明示的な呼び出しがなくても、説明文の発動条件に合致したら使うこと：
+- **webapp-testing** — Playwrightでローカルwebアプリを実ブラウザ検証（Anthropic公式、Apache 2.0）。uicheck/error-rewriteの実行基盤
+- **mcp-builder** — MCPサーバー自作ガイド（Anthropic公式、Apache 2.0）
+- **theme-factory** — スライド・HTML成果物への統一テーマ適用、10種プリセット（Anthropic公式、Apache 2.0）
 - **feedback-sweep** — 本人の修正指摘を失敗パターン化し、同じ型の問題をプロジェクト全体から掃討。大きな誤りを直した直後に使う
 - **error-rewrite** — ユーザーに見えるエラー文言を全数棚卸しし、非IT利用者が次の行動の分かる日本語に書き直して実機検証
 - **gijiroku** — 音声（会議録音）→文字起こし→議事録要約→リネーム保存→タスク登録の一括処理
