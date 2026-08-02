@@ -56,7 +56,7 @@ ls -la ~/Downloads/*.m4a ~/Downloads/*.mp3 ~/Downloads/*.wav 2>/dev/null | sort 
 
 [[project_line_task_manager_v2]] の Supabase `tasks` テーブルへ直接INSERTする(旧line-task-bot/Googleスプレッドシートは2026-07-27に完全撤去済みで存在しない)。
 
-- 接続情報: `C:\Users\hiros\OneDrive\デスクトップ\Claudecode\line-task-manager\app\.env` の `DATABASE_URL`
+- 接続情報: `D:\Claudecode\line-task-manager\app\.env` の `DATABASE_URL`
 - `pg`パッケージは `app\node_modules` に既にあるので、Node.jsスクリプトを一時的に `app` 直下にコピーし `cwd` をそこにして実行する
 - 必須列: `tenant_id`(常に1) / `title` / `short_title`(全角10文字以内) / `requester_id` / `assignee_id` / `due_date`(YYYY-MM-DD) / `group_id`(NULL可、共有したいなら`1`=「動作確認」グループ)
 - membersは `1`=たいら、`2`=たかのぶ
