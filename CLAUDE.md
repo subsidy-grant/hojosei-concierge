@@ -27,7 +27,7 @@
 
 ## スキルについて
 
-`.claude/skills/` に18のスキルがある。明示的な呼び出しがなくても、説明文の発動条件に合致したら使うこと：
+`.claude/skills/` に21のスキルがある。明示的な呼び出しがなくても、説明文の発動条件に合致したら使うこと：
 - **webapp-testing** — Playwrightでローカルwebアプリを実ブラウザ検証（Anthropic公式、Apache 2.0）
 - **mcp-builder** — MCPサーバー自作ガイド（Anthropic公式、Apache 2.0）
 - **grillme** — ソクラテス式の深掘りインタビュー。依頼が抽象的で着手前に詳細を詰める必要があるときにも使う
