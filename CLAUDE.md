@@ -36,6 +36,7 @@
 ### スキルの競合仲裁（どちらが発動するか迷ったらこれに従う）
 
 - **webapp-testing vs uicheck/error-rewrite**：webapp-testingは「道具箱」（単発のブラウザ操作・スクショ・ログ確認・デバッグ）。**完走確認や採点など反復改善のループはuicheck/error-rewriteが主で、その実行手段としてwebapp-testingの道具を使う**。「テストして」だけなら文脈で判断し、迷ったらuicheck
+- **renderproof vs uicheck / webapp-testing**：分かれ目は**成果物が画面か、出力物か**。画面の操作性・完走・採点はuicheck。帳票・PDF・Excel/Word・印刷レイアウトなど「出力して初めて崩れが分かるもの」はrenderproof。どちらもPlaywright等を使うが、webapp-testingはその道具箱で、ループの主にはならない。**印刷CSS・A4ページ数が要件のものはrenderproof**
 - **hallmark vs artdirection**：競合しない。**hallmarkが本体、artdirectionは日本語の上書き**。日本語画面では両方適用し、書体・字組み・可読性の判断はartdirectionが優先する
 - **デザインのテンプレ適用は禁止**：見た目に関わる成果物は hallmark の構造・テーマ選定を経由する。プリセットの当てはめで済ませない（2026-08-02、theme-factoryはこの理由で撤去済み）
 - **feedback-sweep** — 本人の修正指摘を失敗パターン化し、同じ型の問題をプロジェクト全体から掃討。大きな誤りを直した直後に使う
