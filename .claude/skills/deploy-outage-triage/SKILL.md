@@ -86,6 +86,17 @@ gh api -X POST repos/{owner}/{repo}/pages -f "source[branch]=main" -f "source[pa
 実行後は`status:building`のまま数分〜10分動いていないように見えることがある。慌てて追加操作を
 重ねず、`gh run list`で実際の完了を待ってから次を判断する。
 
+**【2026-08-07追記】段階4はチャット内の承認だけでは実行できないことがある。** `gh api -X DELETE`/
+`-X POST`のような破壊的コマンドをAuto modeの分類器がブロックし、ユーザーが「はい」と答えても
+再実行時に同じブロックが起きた（エラー文言「the user can add a Bash permission rule to their
+settings」）。これはチャット内の同意では解除されない種類の制約。段階4を計画する時点で、
+実行できない可能性を織り込み、先に段階1〜2（rerun・空コミット）を尽くす方を優先する。
+
+**【2026-08-07追記】GitHub全体障害が解消した直後でも、障害中に発行された既存ジョブは
+「既に実行中」扱いで`rerun`を拒否することがある**（`run {id} cannot be rerun; This workflow is
+already running`）。この場合はrerunに固執せず、**空コミットで新規workflow runをトリガーする方が
+確実**（2026-08-07実証：空コミット後の新規runは24秒で`completed success`）。
+
 ### 4. 反映確認は本番で実ブラウザ検証まで行う
 
 ビルドが`success`になっただけで終わらない。`curl -I`のLast-Modified更新→実際に対象の変更点
